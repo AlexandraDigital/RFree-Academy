@@ -1585,6 +1585,43 @@ h1, h2, h3 {
     </div>
   </div>
 </div>
+<!-- ================= AI LESSON GENERATOR ================= -->
+<div id="aiLessonGenerator" class="studio-only-panel" style="padding:1rem; background:rgba(26,10,46,0.9); border-radius:8px; margin-top:16px; display:flex; flex-direction:column; gap:12px; color:white; max-width:480px;">
+  
+  <h3 style="font-family:'Syne',sans-serif; font-weight:700; font-size:1.2rem; margin-bottom:8px;">✨ AI Lesson Generator</h3>
+  <div style="font-size:0.85rem; color:var(--purple-300); margin-bottom:8px;">Powered by Groq — generate complete lesson outlines instantly</div>
+
+  <!-- Subject / Topic -->
+  <label for="aiSubject">Subject / Topic</label>
+  <input id="aiSubject" placeholder="e.g. Photosynthesis, World War II, Python Loops..." style="padding:6px 8px; border-radius:4px; border:1px solid rgba(168,85,247,0.3); background:#1a0a2e; color:white;">
+
+  <!-- Grade Level -->
+  <label for="aiGrade">Grade Level</label>
+  <select id="aiGrade" style="padding:6px 8px; border-radius:4px; border:1px solid rgba(168,85,247,0.3); background:#1a0a2e; color:white;">
+    <option>Grades 6–8 (Ages 11–13)</option>
+    <option>Grades 9–12 (Ages 14–18)</option>
+  </select>
+
+  <!-- Lesson Duration -->
+  <label for="aiDuration">Lesson Duration</label>
+  <input id="aiDuration" type="text" value="30 Minutes (Standard)" style="padding:6px 8px; border-radius:4px; border:1px solid rgba(168,85,247,0.3); background:#1a0a2e; color:white;">
+
+  <!-- Learning Goals -->
+  <label for="aiGoals">Learning Goals (optional)</label>
+  <textarea id="aiGoals" placeholder="What should students understand or be able to do after this lesson?" style="padding:6px 8px; border-radius:4px; border:1px solid rgba(168,85,247,0.3); background:#1a0a2e; color:white;"></textarea>
+
+  <!-- Teaching Style -->
+  <label for="aiStyle">Teaching Style</label>
+  <select id="aiStyle" style="padding:6px 8px; border-radius:4px; border:1px solid rgba(168,85,247,0.3); background:#1a0a2e; color:white;">
+    <option>Lecture-based</option>
+    <option>Discussion</option>
+    <option>Project-based</option>
+    <option>Hands-on</option>
+  </select>
+
+  <!-- Generate Outline Button -->
+  <button id="generateAIOutline" class="btn btn-primary" style="margin-top:8px; width:fit-content;">✨ Generate Outline</button>
+</div>
   
 
 <!-- ═══════════════════════════════ TRANSCRIPTS ═══════════════════════════════ -->
