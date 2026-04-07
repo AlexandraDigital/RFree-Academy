@@ -1049,6 +1049,27 @@ nav {
   white-space: nowrap;
   transition: all 0.18s;
 }
+#screenPointer {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  pointer-events: none; /* doesn’t block drawing */
+  transform: translate(-50%, -50%);
+  display: none;        /* show only during recording */
+  z-index: 9999;
+}
+
+#screenPointer.click-pulse {
+  animation: clickPulse 0.2s ease-out;
+}
+
+@keyframes clickPulse {
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -50%) scale(1.5); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
 .smode-btn:hover { background: rgba(168,85,247,0.15); color: var(--white); }
 .smode-btn.active { background: rgba(168,85,247,0.3); color: var(--white); box-shadow: inset 0 0 0 1px rgba(168,85,247,0.5); }
 
@@ -1341,6 +1362,11 @@ h1, h2, h3 {
 
       <!-- THE ONE COMPOSITING CANVAS — always visible -->
       <div class="canvas-wrapper" id="studioWrapper" style="position:relative;flex:1">
+        <canvas id="studioCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
+
+  <!-- Cursor highlight element -->
+  <div id="screenPointer"></div>
+</div>
 
     <!-- 🔴 LIVE RECORDING BADGE -->
   <div id="recordingBadge" class="recording-badge">
@@ -3914,7 +3940,18 @@ function pauseRecording() {
     mediaRecorder.resume();
     document.getElementById("pauseRecBtn").innerText = "⏸️ Pause";
   }
-}
+}// CURSOR POINTER HIGHLIGHT
+  const pointer = document.getElementById('screenPointer');
+
+  document.addEventListener("mousemove", e => {
+    pointer.style.left = e.clientX + "px";
+    pointer.style.top  = e.clientY + "px";
+  });
+
+  document.addEventListener("click", () => {
+    pointer.classList.add("click-pulse");
+    setTimeout(() => pointer.classList.remove("click-pulse"), 200);
+  });
 </script>
 <!-- ADD ORG MODAL -->
 <div class="modal-overlay" id="addOrgModal">
