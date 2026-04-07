@@ -3894,62 +3894,44 @@ function clearScreenAnnotations(){ clearScreenDraw(); }
 
 // Load track progress on init
 state.trackProgress = JSON.parse(localStorage.getItem('rfree_track_progress') || '{}');
-/* === NEW RECORDING SYSTEM === */
+
+//* === NEW RECORDING SYSTEM === */
 let mediaRecorder;
 let recordedChunks = [];
-let timerInterval;
-let seconds = 0;
-
-function updateTimer() {
-  seconds++;
-  const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const secs = String(seconds % 60).padStart(2, "0");
-  document.getElementById("timerDisplay").textContent = `${mins}:${secs}`;
-}
 
 async function startRecording() {
-  const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: true,
-    audio: true
-  });
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true
+    });
 
-  recordedChunks = [];
-  mediaRecorder = new MediaRecorder(stream);
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
 
-  mediaRecorder.ondataavailable = e => {
-    if (e.data.size > 0) recordedChunks.push(e.data);
-  };
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
 
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(recordedChunks, { type: "video/webm" });
-    const url = URL.createObjectURL(blob);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "recording.webm";
-    a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "recording.webm";
+      a.click();
+    };
 
-    clearInterval(timerInterval);
-    seconds = 0;
-    document.getElementById("timerDisplay").textContent = "00:00";
-  };
-
-  mediaRecorder.start();
-
-  // UI toggles
-  document.getElementById("startRecBtn").style.display = "none";
-  document.getElementById("stopRecBtn").style.display = "block";
-  document.getElementById("pauseRecBtn").style.display = "block";
-
-  timerInterval = setInterval(updateTimer, 1000);
+    mediaRecorder.start();
+  } catch (err) {
+    alert("Recording failed: " + err.message);
+  }
 }
 
 function stopRecording() {
   if (mediaRecorder) mediaRecorder.stop();
 
-  document.getElementById("startRecBtn").style.display = "block";
-  document.getElementById("stopRecBtn").style.display = "none";
-  document.getElementById("pauseRecBtn").style.display = "none";
 }
 /* === CHAT SYSTEM === */
 const messages = document.getElementById("messages");
