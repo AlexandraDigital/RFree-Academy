@@ -24,7 +24,7 @@ export function Layout() {
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
               <Sparkles className="w-6 h-6" />
-              RFree Academy
+              RFree
             </Link>
             <div className="flex items-center gap-6">
               {navItems.map((item) => {
