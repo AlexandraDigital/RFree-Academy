@@ -1166,6 +1166,52 @@ nav {
       display: inline-block;
       font-variant-numeric: tabular-nums;
     }
+    nav {
+  display: flex;
+  align-items: center;           /* vertical centering */
+  justify-content: space-between;/* logo left, tabs/actions right */
+  padding: 10px 20px;
+  background-color: #fff;
+  gap: 20px;
+  flex-wrap: wrap;               /* allows wrapping on small screens */
+}
+
+.logo {
+  margin-top: 5px;               /* nudges logo down a little */
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;              /* scroll if too many buttons */
+  flex-wrap: nowrap;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.nav-tabs::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 3px;
+}
+
+.nav-tab {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.nav-tab.active {
+  background-color: #eee;
+}
+
+.nav-actions button {
+  margin-left: 10px;
+}
 </style>
 </head>
 <body>
