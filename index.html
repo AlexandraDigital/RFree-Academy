@@ -559,6 +559,7 @@ nav {
   cursor: pointer;
 }
 
+
 .rec-controls { display: flex; flex-direction: column; gap: 8px; }
 
 .timer-display {
@@ -1113,6 +1114,55 @@ nav {
       h2 { font-size: 1.6rem; }
       h3 { font-size: 1.4rem; }
       .container, .content { padding: 8px; }
+    }
+    
+
+
+    
+    /* ===== TYPOGRAPHY PATCH: Fix stretched titles & certificates ===== */
+
+    /* Headings: modern, readable */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      line-height: 1.3;
+      margin: 1rem 0;
+      white-space: normal;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    /* Body text */
+    body, p, span {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0.5px;
+    }
+
+    /* Certificates */
+    .certificate-title, .certificate-number {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 1.2rem;
+      letter-spacing: 0.2px;
+    }
+
+    /* Responsive sizing */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.6rem; }
+      .certificate-title { font-size: 1rem; }
+      .certificate-number { font-size: 0.9rem; }
+    }
+
+    /* Optional: highlight certificate numbers */
+    .certificate-number {
+      background: rgba(168,85,247,0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
     }
 </style>
 </head>
