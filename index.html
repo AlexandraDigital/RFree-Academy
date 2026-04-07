@@ -1183,12 +1183,13 @@ nav {
 .nav-tabs {
   display: flex;
   gap: 10px;
-  overflow-x: auto;              /* scroll if too many buttons */
-  flex-wrap: nowrap;
+  flex-wrap: nowrap;      /* keep buttons in a single row */
+  overflow-x: auto;       /* allow horizontal scrolling */
+  scrollbar-width: thin;  /* Firefox */
 }
 
 .nav-tabs::-webkit-scrollbar {
-  height: 6px;
+  height: 6px;            /* small scrollbar */
 }
 
 .nav-tabs::-webkit-scrollbar-thumb {
