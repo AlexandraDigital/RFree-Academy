@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
+  
   --purple-900: #1a0a2e;
   --purple-800: #2d1454;
   --purple-700: #3d1a75;
@@ -501,15 +502,18 @@ nav {
 
 .size-slider {
   width: 100%;
+  appearance: none;
   -webkit-appearance: none;
   height: 4px;
   border-radius: 2px;
   background: rgba(168,85,247,0.3);
   outline: none;
 }
+
 .size-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px; height: 16px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--purple-400);
   cursor: pointer;
