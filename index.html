@@ -1066,6 +1066,33 @@ nav {
 h1, h2, h3 {
   text-wrap: balance;
 }
+.chat-box {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 260px;
+  background: rgba(45,20,84,0.95);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+#messages {
+  height: 150px;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 0.8rem;
+}
+
+#chatInput {
+  width: 100%;
+  border: none;
+  padding: 8px;
+  background: rgba(26,10,46,0.9);
+  color: white;
+  outline: none;
+}
 </style>
 </head>
 <body>
@@ -1495,21 +1522,6 @@ h1, h2, h3 {
         </div>
       </div>
     </div>
-
-    <!-- RIGHT: Controls sidebar -->
-    <div class="studio-controls">
-      <!-- Recording panel -->
-      <div class="control-section">
-        <h4>📽️ Recording</h4>
-        <div class="timer-display" id="timerDisplay">00:00</div>
-        <div class="rec-controls mt-1">
-          <button class="btn btn-primary w-full" onclick="startRecording()" id="startRecBtn">⏺️ Start Recording</button>
-          <button class="btn btn-danger w-full" onclick="stopRecording()" id="stopRecBtn" style="display:none">⏹️ Stop & Save</button>
-          <button class="btn btn-ghost w-full" onclick="pauseRecording()" id="pauseRecBtn" style="display:none">⏸️ Pause</button>
-        </div>
-        <div class="text-muted mt-1" style="font-size:0.72rem;text-align:center">Auto-saves to Library on stop · Download as WebM</div>
-      </div>
-
 
       <!-- Lesson info -->
       <div class="control-section">
@@ -3126,7 +3138,7 @@ async function toggleWebcam(on) {
 async function toggleScreen(on) {
   if(on) {
     try {
-      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
+      
       screenVideo = document.createElement('video');
       screenVideo.srcObject = screenStream;
       screenVideo.muted = true;
@@ -3551,7 +3563,32 @@ function stopRecording() {
   showToast(`✅ "${title}" saved to Library!`);
   setTimeout(() => showToast('💡 Go to Transcripts to generate a transcript!'), 1800);
 }
+/* === TEACHER SAFETY === */
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    alert("⚠️ Tab switch or recording attempt detected.");
+  }
+});
 
+navigator.mediaDevices?.addEventListener("devicechange", () => {
+  console.log("Media device change detected");
+});
+
+document.addEventListener("contextmenu", e => e.preventDefault());
+/* === SESSION TIMEOUT === */
+let timeout;
+
+function resetTimer() {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    alert("Session expired for security.");
+    location.reload();
+  }, 1000 * 60 * 30);
+}
+
+window.onload = resetTimer;
+document.onmousemove = resetTimer;
+document.onkeypress = resetTimer;
 // ─────────────────────────── SUPPORT / FUNDING ───────────────────────────
 function selectAmount(btn, group) {
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
@@ -3752,7 +3789,58 @@ function clearScreenAnnotations(){ clearScreenDraw(); }
 
 // Load track progress on init
 state.trackProgress = JSON.parse(localStorage.getItem('rfree_track_progress') || '{}');
+/* === NEW RECORDING SYSTEM === */
+let mediaRecorder;
+let recordedChunks = [];
 
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true
+    });
+
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "recording.webm";
+      a.click();
+    };
+
+    mediaRecorder.start();
+  } catch (err) {
+    alert("Recording failed: " + err.message);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder) mediaRecorder.stop();
+}
+/* === CHAT SYSTEM === */
+const messages = document.getElementById("messages");
+const input = document.getElementById("chatInput");
+
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    const msg = input.value;
+
+    const div = document.createElement("div");
+    div.textContent = "Student: " + msg;
+    messages.appendChild(div);
+
+    input.value = "";
+  }
+});
 </script>
 <!-- ADD ORG MODAL -->
 <div class="modal-overlay" id="addOrgModal">
@@ -3788,6 +3876,10 @@ state.trackProgress = JSON.parse(localStorage.getItem('rfree_track_progress') ||
     <button class="btn btn-primary w-full" onclick="closeModal('addOrgModal');showToast('💜 Your organization has been submitted! We\'ll review and list it within 48 hours.','success')">Submit Organization</button>
   </div>
 </div>
-
+<!-- STUDENT CHAT -->
+<div class="chat-box">
+  <div id="messages"></div>
+  <input id="chatInput" placeholder="Message teacher..." />
+</div>
 </body>
 </html>
