@@ -1173,9 +1173,19 @@ nav {
 <!-- NAV -->
 <nav>
   
-  <a href="/">
-    <img src="/rfree.svg" alt="RFree Logo" width="120" height="40">
-  </a>
+<svg width="120" height="40" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gradNav" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#FF8C00; stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#8A2BE2; stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <circle cx="60" cy="60" r="58" fill="url(#gradNav)" stroke="#00000022" stroke-width="2"/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+          font-family="Arial Black, sans-serif" font-size="36" fill="white">
+      RFree
+    </text>
+  </svg>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('home')">🏠 Home</button>
     <button class="nav-tab" onclick="showPage('tracks')">🌱 Impact Tracks</button>
