@@ -425,6 +425,7 @@ nav {
 @media(max-width:900px) { .studio-layout { grid-template-columns: 1fr; } }
 
 .canvas-wrapper {
+  
   background: #000;
   border-radius: var(--radius);
   overflow: hidden;
@@ -433,6 +434,7 @@ nav {
   width: 100%;
   height: calc(100vh - 200px);
   min-height: 500px;
+  
 }
 
 #studioCanvas {
@@ -1339,7 +1341,16 @@ h1, h2, h3 {
 
       <!-- THE ONE COMPOSITING CANVAS — always visible -->
       <div class="canvas-wrapper" id="studioWrapper" style="position:relative;flex:1">
-        <canvas id="studioCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
+
+    <!-- 🔴 LIVE RECORDING BADGE -->
+  <div id="recordingBadge" class="recording-badge">
+    <span class="rec-dot"></span> REC
+  </div>
+
+  <!-- your canvas stays here -->
+  <canvas id="studioCanvas" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
+
+</div>
 
         <!-- Face bubble — draggable pip -->
         <div id="faceBubble" style="display:none;position:absolute;bottom:16px;right:16px;width:180px;height:135px;border-radius:12px;overflow:hidden;border:2px solid rgba(168,85,247,0.6);box-shadow:0 4px 20px rgba(0,0,0,0.5);cursor:move;z-index:10;background:#000">
@@ -1356,7 +1367,7 @@ h1, h2, h3 {
         </div>
 
         <!-- REC badge -->
-        <div class="recording-badge" id="recBadge" style="display:none"><span class="rec-dot"></span> REC</div>
+        <div class="recording-badge" id="recordingBadge" style="display:none"><span class="rec-dot"></span> REC</div>
 
         <!-- Mode label watermark -->
         <div id="modeLabelBadge" style="position:absolute;top:10px;left:10px;font-size:0.65rem;font-family:'DM Mono',monospace;color:rgba(168,85,247,0.6);letter-spacing:1px;pointer-events:none">CANVAS</div>
@@ -3482,10 +3493,11 @@ function setFaceShape(shape) {
 function startRecording() {
   state.recording = true;
   state.recordingSeconds = 0;
-  document.getElementById('recBadge').style.display = 'flex';
+ document.getElementById('recordingBadge').style.display = 'flex';
   document.getElementById('startRecBtn').style.display = 'none';
   document.getElementById('stopRecBtn').style.display  = 'block';
   document.getElementById('pauseRecBtn').style.display = 'block';
+  
 
   // Try to record the composite canvas
   try {
@@ -3517,13 +3529,13 @@ function pauseRecording() {
   if(state.mediaRecorder) {
     state.paused ? state.mediaRecorder.pause() : state.mediaRecorder.resume();
   }
-  document.getElementById('recBadge').style.display = state.paused ? 'none' : 'flex';
+  document.getElementById('recordingBadge').style.display = state.paused ? 'none' : 'flex';
 }
 
 function stopRecording() {
   clearInterval(state.recordingTimer);
   state.recording = false; state.paused = false;
-  document.getElementById('recBadge').style.display = 'none';
+  document.getElementById('recordingBadge').style.display = 'none';
   document.getElementById('startRecBtn').style.display = 'block';
   document.getElementById('stopRecBtn').style.display  = 'none';
   document.getElementById('pauseRecBtn').style.display = 'none';
@@ -3547,7 +3559,7 @@ function stopRecording() {
     };
     state.mediaRecorder.stop();
   }
-
+// Save to Library
   const lesson = {
     id:        Date.now(),
     title, subject,
@@ -3563,10 +3575,35 @@ function stopRecording() {
 
   state.lessons.unshift(lesson);
   saveLibrary();
+
+        // Reset UI
   document.getElementById('timerDisplay').textContent = '00:00';
   showToast(`✅ "${title}" saved to Library!`);
   setTimeout(() => showToast('💡 Go to Transcripts to generate a transcript!'), 1800);
-}
+  // hide live badge
+  document.getElementById('recordingBadge').style.display = 'none';
+
+  // stop timer
+  clearInterval(state.timerInterval);
+  state.recordingSeconds = 0;
+
+  
+ // Hide pointer
+      pointer.style.display = 'none';
+    };
+
+    state.mediaRecorder.stop();
+  
+
+  // Reset buttons
+  document.getElementById('startRecBtn').style.display = 'block';
+  document.getElementById('stopRecBtn').style.display  = 'none';
+  document.getElementById('pauseRecBtn').style.display = 'none';
+
+  state.recording = false;
+  state.mediaRecorder = null;
+  state.recordedChunks = [];
+
 /* === TEACHER SAFETY === */
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
@@ -3579,6 +3616,8 @@ navigator.mediaDevices?.addEventListener("devicechange", () => {
 });
 
 document.addEventListener("contextmenu", e => e.preventDefault());
+
+
 /* === SESSION TIMEOUT === */
 let timeout;
 
@@ -3796,39 +3835,59 @@ state.trackProgress = JSON.parse(localStorage.getItem('rfree_track_progress') ||
 /* === NEW RECORDING SYSTEM === */
 let mediaRecorder;
 let recordedChunks = [];
+let timerInterval;
+let seconds = 0;
+
+function updateTimer() {
+  seconds++;
+  const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const secs = String(seconds % 60).padStart(2, "0");
+  document.getElementById("timerDisplay").textContent = `${mins}:${secs}`;
+}
 
 async function startRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true
-    });
+  const stream = await navigator.mediaDevices.getDisplayMedia({
+    video: true,
+    audio: true
+  });
 
-    recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(stream);
 
-    mediaRecorder.ondataavailable = e => {
-      if (e.data.size > 0) recordedChunks.push(e.data);
-    };
+  mediaRecorder.ondataavailable = e => {
+    if (e.data.size > 0) recordedChunks.push(e.data);
+  };
 
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: "video/webm" });
+    const url = URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "recording.webm";
-      a.click();
-    };
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "recording.webm";
+    a.click();
 
-    mediaRecorder.start();
-  } catch (err) {
-    alert("Recording failed: " + err.message);
-  }
+    clearInterval(timerInterval);
+    seconds = 0;
+    document.getElementById("timerDisplay").textContent = "00:00";
+  };
+
+  mediaRecorder.start();
+
+  // UI toggles
+  document.getElementById("startRecBtn").style.display = "none";
+  document.getElementById("stopRecBtn").style.display = "block";
+  document.getElementById("pauseRecBtn").style.display = "block";
+
+  timerInterval = setInterval(updateTimer, 1000);
 }
 
 function stopRecording() {
   if (mediaRecorder) mediaRecorder.stop();
+
+  document.getElementById("startRecBtn").style.display = "block";
+  document.getElementById("stopRecBtn").style.display = "none";
+  document.getElementById("pauseRecBtn").style.display = "none";
 }
 /* === CHAT SYSTEM === */
 const messages = document.getElementById("messages");
@@ -3845,6 +3904,17 @@ input.addEventListener("keypress", e => {
     input.value = "";
   }
 });
+function pauseRecording() {
+  if (!mediaRecorder) return;
+
+  if (mediaRecorder.state === "recording") {
+    mediaRecorder.pause();
+    document.getElementById("pauseRecBtn").innerText = "▶ Resume";
+  } else if (mediaRecorder.state === "paused") {
+    mediaRecorder.resume();
+    document.getElementById("pauseRecBtn").innerText = "⏸️ Pause";
+  }
+}
 </script>
 <!-- ADD ORG MODAL -->
 <div class="modal-overlay" id="addOrgModal">
