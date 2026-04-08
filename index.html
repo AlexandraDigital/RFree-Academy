@@ -1882,15 +1882,15 @@ nav {
       <!-- API -->
       <div class="settings-section active panel" id="settings-api" style="padding:1.5rem">
         <h3 style="font-family:'Arial Black',sans-serif;font-weight:700;margin-bottom:0.5rem">🔑 API Configuration</h3>
-        <p class="text-muted mb-2">Your Groq API key is stored in Cloudflare Workers — never exposed in the browser. Enter your Cloudflare Worker URL below.</p>
+        <p class="text-muted mb-2">Your Groq API key is stored in Cloudflare Pages — never exposed in the browser. Enter your Cloudflare Pages URL below.</p>
 
         <div class="form-group">
-          <label class="form-label">Cloudflare Worker URL</label>
+          <label class="form-label">Cloudflare Pages URL</label>
           <div class="api-key-input-group">
-            <input class="form-input" id="cfWorkerUrl" placeholder="https://your-worker.workers.dev" />
+            <input class="form-input" id="cfWorkerUrl" placeholder="https://your-pages.pages.dev" />
             <button class="btn btn-primary btn-sm" onclick="saveCFUrl()">Save</button>
           </div>
-          <div class="text-muted mt-1">Your Worker proxies Groq API calls with your stored API key</div>
+          <div class="text-muted mt-1">Your Pages site proxies Groq API calls with your stored API key</div>
         </div>
 
         <div class="form-group">
@@ -1900,7 +1900,7 @@ nav {
             <button class="btn btn-ghost btn-sm" onclick="toggleKeyVis('groqKey')">👁️</button>
             <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Save</button>
           </div>
-          <div class="text-muted mt-1">⚠️ For demo use only. Use Cloudflare Workers in production.</div>
+          <div class="text-muted mt-1">⚠️ For demo use only. Use Cloudflare Pages in production.</div>
         </div>
 
         <div class="form-group">
@@ -1989,7 +1989,7 @@ nav {
         <div style="font-size:0.82rem;color:var(--purple-300);line-height:2">
           <div>Version: <span class="text-gold">1.0.0</span></div>
           <div>AI: <span class="text-gold">Groq (Llama 3.3 70B)</span></div>
-          <div>Infrastructure: <span class="text-gold">Cloudflare Workers</span></div>
+          <div>Infrastructure: <span class="text-gold">Cloudflare Pages</span></div>
           <div>License: <span class="text-gold">MIT (Open Source)</span></div>
         </div>
       </div>
