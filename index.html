@@ -51,6 +51,9 @@ body {
   color: var(--white);
   min-height: 100vh;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* ─── BACKGROUND MESH ─── */
@@ -66,6 +69,18 @@ body::before {
   z-index: 0;
 }
 
+/* ─── GLOBAL SCROLL IMPROVEMENTS ─── */
+html {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+}
+
+@supports(padding: max(0px)) {
+  body {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
 /* ─── NAV ─── */
 nav {
   position: sticky;
@@ -75,6 +90,7 @@ nav {
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(168,85,247,0.2);
   padding: 0 2rem;
+  padding-top: max(0.5rem, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -151,8 +167,18 @@ nav {
 .btn-mint:hover { background: rgba(16,185,129,0.3); }
 
 /* ─── PAGES ─── */
-.page { display: none; position: relative; z-index: 1; }
-.page.active { display: block; }
+.page { 
+  display: none; 
+  position: relative; 
+  z-index: 1;
+  width: 100%;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page.active { 
+  display: block;
+}
 
 /* ─── HOME ─── */
 .hero {
@@ -634,10 +660,29 @@ nav {
 .funding-card p { font-size: 0.85rem; color: var(--purple-200); line-height: 1.6; margin-bottom: 1.2rem; }
 
 /* ─── SETTINGS ─── */
-.settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem; padding: 2rem; }
-@media(max-width:700px) { .settings-layout { grid-template-columns: 1fr; } }
+.settings-layout { 
+  display: grid; 
+  grid-template-columns: 220px 1fr; 
+  gap: 1.5rem; 
+  padding: 2rem;
+  padding-bottom: 3rem;
+  width: 100%;
+}
+@media(max-width:700px) { 
+  .settings-layout { 
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  } 
+}
 
-.settings-nav { display: flex; flex-direction: column; gap: 4px; }
+.settings-nav { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px;
+  position: sticky;
+  top: 64px;
+  height: fit-content;
+}
 .settings-nav-item {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
@@ -649,8 +694,14 @@ nav {
 }
 .settings-nav-item:hover, .settings-nav-item.active { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); color: var(--white); }
 
-.settings-section { display: none; }
-.settings-section.active { display: block; }
+.settings-section { 
+  display: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.settings-section.active { 
+  display: block;
+}
 
 .api-key-input-group { display: flex; gap: 8px; align-items: flex-start; }
 .api-key-input-group .form-input { flex: 1; font-family: 'DM Mono', monospace; font-size: 0.82rem; }
