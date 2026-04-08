@@ -120,6 +120,9 @@ nav {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  padding-right: 1rem;
+  mask-image: linear-gradient(to right, black calc(100% - 30px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 30px), transparent 100%);
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
 @supports (overflow: -webkit-marquee) {
@@ -138,6 +141,7 @@ nav {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 .nav-tab:hover { background: rgba(168,85,247,0.15); color: var(--white); }
 .nav-tab.active { background: rgba(168,85,247,0.25); color: var(--white); border: 1px solid rgba(168,85,247,0.4); }
@@ -3689,6 +3693,21 @@ function setFaceShape(shape) {
       fb.style.bottom = 'auto'; fb.style.right = 'auto';
     });
     document.addEventListener('mouseup', () => { dragging=false; });
+
+    // ── NAV SCROLL HINT ───────────────────
+    const navTabs = document.querySelector('.nav-tabs');
+    if(navTabs) {
+      const checkScroll = () => {
+        if(navTabs.scrollWidth > navTabs.clientWidth) {
+          navTabs.style.scrollBehavior = 'smooth';
+        }
+      };
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      navTabs.addEventListener('scroll', () => {
+        // Smooth scroll is already enabled via CSS
+      });
+    }
   });
 })();
 
