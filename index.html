@@ -1713,7 +1713,7 @@ nav {
     </div>
   </div>
 </div>
-          <div class="annotation-bar">
+          <div class="annotation-bar" id="annotationBar" style="display:none">
             <span style="font-size:0.72rem;color:var(--purple-400);font-weight:600">DRAW ON SCREEN:</span>
             <button class="anno-btn active" id="ot-pen" onclick="setOverlayTool('pen')">✏️ Pen</button>
             <button class="anno-btn" id="ot-pointer" onclick="setOverlayTool('pointer')">👆 Laser</button>
@@ -2638,7 +2638,12 @@ function showPage(id) {
   });
   if(id === 'library') renderLibrary();
   if(id === 'transcript') populateLessonSelect();
-  if(id === 'studio') setTimeout(initCanvas, 50);
+  if(id === 'studio') {
+    setTimeout(initCanvas, 50);
+    document.getElementById('annotationBar').style.display = 'flex';
+  } else {
+    document.getElementById('annotationBar').style.display = 'none';
+  }
   if(id === 'certificates') updateCertPreview();
   window.scrollTo(0, 0);
 }
