@@ -1,12 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RFREE Admin Panel</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+
 <h1>👑 Admin Panel</h1>
 
-<button onclick="loadUsers()">Load Users</button>
+<div>
+  <button onclick="loadUsers()">Load Users</button>
+  <button onclick="loadStats()">Load Stats</button>
+</div>
 
+<h2>📊 Stats</h2>
+<div id="stats"></div>
+
+<h2>👤 Users</h2>
 <div id="users"></div>
 
 <script>
 const token = localStorage.getItem("token");
 
+// 👤 LOAD USERS
 async function loadUsers() {
   const res = await fetch("/api/admin/users", {
     headers: {
@@ -18,24 +35,64 @@ async function loadUsers() {
 
   document.getElementById("users").innerHTML =
     data.map(u => `
-      <div>
-        ${u.email} - ${u.role}
-        <button onclick="changeRole(${u.id}, 'teacher')">Make Teacher</button>
-        <button onclick="changeRole(${u.id}, 'student')">Make Student</button>
+      <div class="card">
+        <b>${u.email}</b> - ${u.role}
+
+        <button onclick="changeRole(${u.id}, 'student')">Student</button>
+        <button onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
+        <button onclick="changeRole(${u.id}, 'admin')">Admin</button>
+
+        <button onclick="deleteUser(${u.id})">Delete</button>
       </div>
     `).join("");
 }
 
-async function changeRole(id, role) {
+// 🔁 CHANGE ROLE
+async function changeRole(userId, role) {
   await fetch("/api/admin/role", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token
     },
-    body: JSON.stringify({ userId: id, role })
+    body: JSON.stringify({ userId, role })
   });
 
   loadUsers();
 }
+
+// 🗑️ DELETE USER
+async function deleteUser(userId) {
+  await fetch("/api/admin/delete-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ userId })
+  });
+
+  loadUsers();
+}
+
+// 📊 LOAD STATS
+async function loadStats() {
+  const res = await fetch("/api/admin/stats", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+
+  document.getElementById("stats").innerHTML = `
+    <div class="card">
+      👤 Users: ${data.totalUsers}<br>
+      📚 Completed Lessons: ${data.completedLessons}
+    </div>
+  `;
+}
 </script>
+
+</body>
+</html>
