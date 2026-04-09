@@ -1450,6 +1450,8 @@ nav {
       <option value="art">Art</option>
       <option value="other">Other</option>
     </select>
+    <button class="btn btn-mint" onclick="syncLessonsToGitHub()" title="Push all lessons to GitHub repository">🚀 Sync to GitHub</button>
+    <button class="btn btn-primary" onclick="exportLessonsJSON()" title="Download lessons as JSON for backup">📥 Export Lessons</button>
   </div>
   <div class="library-grid" id="libraryGrid">
     <!-- populated by JS -->
@@ -2956,6 +2958,107 @@ function deleteLesson(id) {
   closeModal('lessonModal');
   renderLibrary();
   showToast('Lesson deleted');
+}
+
+// ─────────────────────────── EXPORT & GITHUB SYNC ───────────────────────────
+function exportLessonsJSON() {
+  if(state.lessons.length === 0) {
+    showToast('❌ No lessons to export!');
+    return;
+  }
+
+  const exportData = {
+    exportDate: new Date().toISOString(),
+    totalLessons: state.lessons.length,
+    lessons: state.lessons
+  };
+
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataBlob = new Blob([dataStr], {type: 'application/json'});
+  const url = URL.createObjectURL(dataBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `rfree-academy-lessons-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('✅ Lessons exported! Downloaded to your computer.');
+}
+
+async function syncLessonsToGitHub() {
+  if(state.lessons.length === 0) {
+    showToast('❌ No lessons to sync!');
+    return;
+  }
+
+  showToast('🔄 Starting sync to GitHub...');
+  
+  // Group lessons by tag/course
+  const grouped = {};
+  state.lessons.forEach(lesson => {
+    const course = lesson.tags && lesson.tags[0] ? lesson.tags[0] : 'uncategorized';
+    if(!grouped[course]) grouped[course] = [];
+    grouped[course].push(lesson);
+  });
+
+  // Prepare files to sync
+  const files = [];
+  let lessonCount = 0;
+  
+  for(const [course, lessons] of Object.entries(grouped)) {
+    lessons.forEach((lesson, index) => {
+      const lessonNum = index + 1;
+      const filename = `lesson-${lessonNum}.md`;
+      const coursePath = course.replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
+      const repoPath = `lessons/${coursePath}/${filename}`;
+      
+      // Create markdown content
+      const content = `# ${lesson.title}
+
+**Course:** ${course}  
+**Lesson:** ${lessonNum}  
+**Teacher:** ${lesson.teacher || 'You'}  
+**Date:** ${lesson.date}  
+**Duration:** ${lesson.duration || 'N/A'}  
+**Grade:** ${lesson.grade || 'N/A'}  
+
+## Outline
+
+\`\`\`
+${lesson.outline || 'No outline provided'}
+\`\`\`
+
+---
+Generated on RFree Academy
+`;
+
+      files.push({ repoPath, content });
+      lessonCount++;
+    });
+  }
+
+  // Send to server/API to push to GitHub
+  try {
+    const response = await fetch('/.netlify/functions/github-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files, grouped })
+    });
+
+    if(!response.ok) {
+      // Fallback: Show manual instructions
+      showToast('⚠️ Auto-sync unavailable. Open GitHub manually to add these files.');
+      console.log('Files ready for manual sync:', files);
+      return;
+    }
+
+    const result = await response.json();
+    showToast(`✅ Synced ${lessonCount} lessons to GitHub!`);
+  } catch(err) {
+    console.error('Sync error:', err);
+    showToast('⚠️ Could not sync automatically. Check browser console.');
+  }
 }
 
 // ─────────────────────────── TRANSCRIPT ───────────────────────────
