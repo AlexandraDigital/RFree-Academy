@@ -4465,7 +4465,7 @@ function openTrack(id) {
     <div style="font-family:'Arial Black',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--mint);margin-bottom:0.6rem">📚 Your Library Lessons</div>
     <div style="display:flex;flex-direction:column;gap:6px">
       ${myLessons.slice(0,3).map(l => `
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:0.83rem" onclick="closeModal('lessonModal');showPage('library')">
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:0.83rem" onclick="closeModal('lessonModal');openLibraryLesson('${l.id}')">
         <span>${l.emoji||'📚'}</span><span style="flex:1;font-weight:600">${l.title}</span><span style="color:var(--mint);font-size:0.75rem">Open →</span>
       </div>`).join('')}
     </div>` : ''}
@@ -4474,6 +4474,11 @@ function openTrack(id) {
 }
 
 function viewLesson(trackId, index) {
+  // FIND MATCHING LIBRARY LESSON
+const libraryLesson = state.lessons.find(l =>
+  l.trackId === trackId && l.lessonIndex === index
+);
+
   const track = trackData[trackId];
   if(!track) return;
   const lesson = track.lessons[index];
@@ -4518,13 +4523,26 @@ function viewLesson(trackId, index) {
       <a href="${githubUrl}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:0.75rem;text-decoration:none">Open →</a>
     </div>` : ''}
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      ${done
-        ? `<div style="display:flex;align-items:center;gap:6px;color:var(--mint);font-size:0.88rem;font-weight:600"><span>✅</span> Lesson Complete</div>`
-        : `<button class="btn btn-primary" onclick="markLessonDone('${trackId}',${index})">✅ Mark Complete</button>`
-      }
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('lessonModal');showPage('generator')" style="font-size:0.8rem">✨ Generate Full Lesson</button>
-    </div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+  ${done
+    ? `<div style="display:flex;align-items:center;gap:6px;color:var(--mint);font-size:0.88rem;font-weight:600"><span>✅</span> Lesson Complete</div>`
+    : `<button class="btn btn-primary" onclick="markLessonDone('${trackId}',${index})">✅ Mark Complete</button>`
+  }
+
+  ${libraryLesson ? `
+    <button class="btn btn-gold" onclick="closeModal('lessonModal');openLibraryLesson('${l.id}')">
+      ▶ Watch Lesson
+    </button>
+  ` : `
+    <button class="btn btn-ghost" onclick="showPage('generator')">
+      ⚠️ No video yet
+    </button>
+  `}
+
+  <button class="btn btn-ghost btn-sm" onclick="closeModal('lessonModal');showPage('generator')" style="font-size:0.8rem">
+    ✨ Generate Full Lesson
+  </button>
+</div>
   `;
 }
 
@@ -4582,6 +4600,24 @@ function submitCapstone(trackId) {
       <textarea class="form-textarea" id="capstoneDesc" placeholder="Describe what you did, where, and the impact..." style="min-height:70px"></textarea>
     </div>
     <button class="btn btn-gold w-full" onclick="confirmCapstone('${trackId}')">✅ Submit Capstone</button>
+  `;
+}
+function openLibraryLesson(id) {
+  const lesson = state.lessons.find(l => l.id === id);
+  if (!lesson) return;
+
+  // go to library page
+  showPage('library');
+
+  // load video into viewer
+  const viewer = document.querySelector('.video-frame');
+
+  viewer.innerHTML = `
+    <iframe width="100%" height="100%"
+      src="${lesson.video}"
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
   `;
 }
 
