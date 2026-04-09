@@ -4931,7 +4931,51 @@ if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)
     <button class="btn btn-primary w-full" onclick="submitOrgApplication()">Submit Organization</button>
   </div>
 </div>
+<script>
+async function loadLessons() {
+  const res = await fetch('lessons.json');
+  const data = await res.json();
 
+  const grid = document.querySelector('.library-grid');
+  grid.innerHTML = '';
+
+  data.lessons.forEach(lesson => {
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+
+    card.innerHTML = `
+      <div class="lesson-thumb">
+        ▶
+      </div>
+      <div class="lesson-body">
+        <div class="lesson-subject">${lesson.subject}</div>
+        <div class="lesson-title">${lesson.title}</div>
+        <div class="lesson-meta">${lesson.duration}</div>
+      </div>
+    `;
+
+    // CLICK → OPEN VIDEO
+    card.onclick = () => openLesson(lesson);
+
+    grid.appendChild(card);
+  });
+}
+
+function openLesson(lesson) {
+  const viewer = document.querySelector('.video-frame');
+
+  viewer.innerHTML = `
+    <iframe width="100%" height="100%" 
+      src="${lesson.video}" 
+      frameborder="0" 
+      allowfullscreen>
+    </iframe>
+  `;
+}
+
+// load on start
+loadLessons();
+</script>
 </body>
 </html>
 
