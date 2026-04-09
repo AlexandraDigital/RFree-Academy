@@ -59,7 +59,7 @@ export const LessonList: React.FC<LessonListProps> = ({
                 rel="noopener noreferrer"
                 className="resource-link"
               >
-                📄 View Lesson Resource
+                📄 View Lesson
               </a>
 
               {/* Admin-only: show the raw GitHub source URL for reference */}
