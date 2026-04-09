@@ -7,6 +7,14 @@ import { LessonForm } from './components/LessonForm';
 import { githubService } from './utils/githubService';
 import './styles.css';
 
+/**
+ * Admin mode: append ?admin=true to the URL to enable admin view.
+ * e.g., https://yoursite.com/lesson-manager?admin=true
+ * In admin mode, the raw GitHub source URL is visible on each lesson card.
+ * Students and teachers use the regular URL and never see the GitHub link.
+ */
+const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+
 function LessonDirectory() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -15,7 +23,6 @@ function LessonDirectory() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
 
-  // Load lessons on mount
   useEffect(() => {
     loadLessons();
   }, []);
@@ -97,6 +104,12 @@ function LessonDirectory() {
 
   return (
     <div className="app-container">
+      {isAdmin && (
+        <div className="admin-mode-banner">
+          🔒 Admin Mode — GitHub source URLs are visible
+        </div>
+      )}
+
       <Header
         onAddLesson={() => {
           setEditingLesson(undefined);
@@ -117,6 +130,7 @@ function LessonDirectory() {
             setShowForm(true);
           }}
           onDelete={handleDeleteLesson}
+          isAdmin={isAdmin}
         />
       </main>
 

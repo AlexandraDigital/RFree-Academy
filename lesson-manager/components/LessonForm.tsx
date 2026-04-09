@@ -29,7 +29,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
     if (!videoUrl.trim()) newErrors.push('Video URL is required');
     if (!outline.trim()) newErrors.push('Outline is required');
     if (videoUrl && !isValidUrl(videoUrl)) newErrors.push('Invalid video URL format');
-    if (githubUrl && !isValidUrl(githubUrl)) newErrors.push('Invalid GitHub URL format');
+    if (githubUrl && !isValidUrl(githubUrl)) newErrors.push('Invalid source URL format');
     setErrors(newErrors);
     return newErrors.length === 0;
   };
@@ -61,7 +61,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>{lesson ? 'Edit Lesson' : 'Add New Lesson'}</h2>
-        
+
         {errors.length > 0 && (
           <div className="errors">
             {errors.map((error, idx) => (
@@ -91,14 +91,20 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
             />
           </div>
 
-          <div className="form-group">
-            <label>GitHub URL (optional)</label>
+          <div className="form-group admin-field">
+            <label>
+              🔒 Source File URL
+              <span className="admin-hint"> (admin only — paste your GitHub file link here)</span>
+            </label>
             <input
               type="url"
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/AlexandraDigital/RFree-Academy/..."
+              placeholder="https://github.com/AlexandraDigital/RFree-Academy/blob/main/..."
             />
+            <p className="field-note">
+              Students will see a clean "View Lesson Resource" link — your GitHub URL stays hidden.
+            </p>
           </div>
 
           <div className="form-group">
