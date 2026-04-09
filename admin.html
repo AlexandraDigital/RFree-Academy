@@ -1,0 +1,41 @@
+<h1>👑 Admin Panel</h1>
+
+<button onclick="loadUsers()">Load Users</button>
+
+<div id="users"></div>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function loadUsers() {
+  const res = await fetch("/api/admin/users", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+
+  document.getElementById("users").innerHTML =
+    data.map(u => `
+      <div>
+        ${u.email} - ${u.role}
+        <button onclick="changeRole(${u.id}, 'teacher')">Make Teacher</button>
+        <button onclick="changeRole(${u.id}, 'student')">Make Student</button>
+      </div>
+    `).join("");
+}
+
+async function changeRole(id, role) {
+  await fetch("/api/admin/role", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ userId: id, role })
+  });
+
+  loadUsers();
+}
+</script>
