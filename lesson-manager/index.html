@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a0a2e">
+<title>RFree — Lesson Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple-900: #1a0a2e;
+  --purple-800: #2d1454;
+  --purple-700: #3d1a75;
+  --purple-600: #5b21b6;
+  --purple-500: #7c3aed;
+  --purple-400: #a855f7;
+  --purple-300: #c084fc;
+  --purple-200: #e9d5ff;
+  --gold: #f59e0b;
+  --mint: #10b981;
+  --white: #ffffff;
+  --gray-400: #a1a1aa;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 8px 32px rgba(92,33,237,0.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--purple-900);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(123,58,237,0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(168,85,247,0.18) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(26,10,46,0.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(168,85,247,0.2);
+  padding: 0 2rem;
+  display: flex; align-items: center; gap: 1rem;
+  height: 60px;
+}
+
+.nav-logo {
+  font-size: 1.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--purple-300), var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.nav-back {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid rgba(168,85,247,0.3);
+  color: var(--purple-300); border-radius: 100px;
+  padding: 6px 16px; font-size: 0.82rem; font-weight: 500;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
+}
+.nav-back:hover { background: rgba(168,85,247,0.12); color: var(--white); }
+
+/* ── ADMIN BANNER ── */
+.admin-banner {
+  background: rgba(245,158,11,0.1);
+  border-bottom: 1px solid rgba(245,158,11,0.3);
+  padding: 8px 2rem;
+  font-size: 0.8rem; color: var(--gold); font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  position: relative; z-index: 1;
+}
+
+/* ── HEADER ── */
+.page-header {
+  position: relative; z-index: 1;
+  padding: 2rem 2rem 0;
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+
+.page-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+.page-subtitle { color: var(--purple-300); font-size: 0.85rem; margin-top: 4px; }
+
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 100px;
+  border: none; font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.btn-primary { background: linear-gradient(135deg, var(--purple-600), var(--purple-500)); color: var(--white); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,58,237,0.4); }
+.btn-ghost { background: transparent; color: var(--purple-300); border: 1px solid rgba(168,85,247,0.3); }
+.btn-ghost:hover { background: rgba(168,85,247,0.1); color: var(--white); }
+.btn-danger { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; }
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+.btn-edit { background: rgba(168,85,247,0.12); color: var(--purple-300); border: 1px solid rgba(168,85,247,0.25); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; }
+.btn-edit:hover { background: rgba(168,85,247,0.22); color: var(--white); }
+.btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+/* ── STATUS BAR ── */
+.status-bar {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 1rem auto 0; padding: 0 2rem;
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+  color: var(--mint); border-radius: 100px; padding: 6px 16px; font-size: 0.82rem;
+}
+
+/* ── GRID ── */
+.lesson-grid {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem; padding: 2rem; max-width: 1100px; margin: 0 auto;
+}
+
+/* ── LESSON CARD ── */
+.lesson-card {
+  background: rgba(45,20,84,0.65);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: var(--radius); padding: 1.3rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+  transition: all 0.25s; backdrop-filter: blur(10px);
+}
+.lesson-card:hover { border-color: rgba(168,85,247,0.45); transform: translateY(-3px); box-shadow: var(--shadow); }
+
+.card-subject {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--purple-400); font-weight: 600;
+}
+
+.card-title {
+  font-size: 1rem; font-weight: 700; line-height: 1.35;
+  color: var(--white); text-decoration: none; display: block;
+}
+.card-title:hover { color: var(--purple-300); }
+
+.card-outline {
+  font-size: 0.82rem; color: var(--purple-200); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.card-meta {
+  font-size: 0.75rem; color: var(--purple-400);
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+}
+
+.card-resource {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.resource-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+  color: #6ee7b7; border-radius: var(--radius-sm);
+  padding: 5px 12px; font-size: 0.78rem; font-weight: 500;
+  text-decoration: none; transition: all 0.2s; width: fit-content;
+}
+.resource-link:hover { background: rgba(16,185,129,0.22); color: var(--white); }
+
+.admin-source {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; color: var(--gold); margin-top: 2px;
+}
+.admin-source a {
+  color: var(--gold); text-decoration: underline;
+  font-family: 'DM Mono', monospace; font-size: 0.7rem;
+}
+.admin-source a:hover { color: var(--white); }
+
+.card-actions {
+  display: flex; gap: 8px; margin-top: auto;
+  padding-top: 0.75rem; border-top: 1px solid rgba(168,85,247,0.12);
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  position: relative; z-index: 1;
+  text-align: center; padding: 80px 2rem;
+  color: var(--purple-300);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--white); }
+.empty-state p { font-size: 0.88rem; opacity: 0.7; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,4,20,0.8);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; padding: 1.5rem; backdrop-filter: blur(4px);
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: linear-gradient(160deg, #2d1454 0%, #1a0a2e 100%);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: var(--radius); padding: 2rem;
+  width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+
+.modal h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--white); }
+
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  color: var(--purple-300); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-label .hint { text-transform: none; letter-spacing: 0; color: var(--purple-400); font-weight: 400; }
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: rgba(26,10,46,0.85);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  color: var(--white); font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; outline: none; transition: border-color 0.2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--purple-400);
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.12);
+}
+.form-textarea { resize: vertical; min-height: 90px; }
+.form-select option { background: var(--purple-800); }
+
+.field-note { font-size: 0.75rem; color: var(--purple-400); margin-top: 5px; }
+
+.form-errors {
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 1rem;
+}
+.form-errors p { font-size: 0.82rem; color: #fca5a5; margin-bottom: 3px; }
+.form-errors p:last-child { margin-bottom: 0; }
+
+.form-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem;
+}
+
+/* ── TOAST ── */
+#toastContainer {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 999;
+}
+.toast {
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 0.85rem; font-weight: 500; animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.toast.success { background: rgba(16,185,129,0.9); color: var(--white); }
+.toast.error   { background: rgba(239,68,68,0.9);  color: var(--white); }
+@keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── RESPONSIVE ── */
+@media(max-width: 600px) {
+  nav { padding: 0 1rem; }
+  .page-header { padding: 1.5rem 1rem 0; }
+  .lesson-grid { padding: 1.25rem 1rem; }
+  .modal { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">R<span style="color:var(--gold);-webkit-text-fill-color:var(--gold)">Free</span></div>
+  <span style="color:var(--purple-400);font-size:0.82rem;margin-left:4px">/ Lesson Manager</span>
+  <a href="../" class="nav-back">← Back to Academy</a>
+</nav>
+
+<!-- ADMIN BANNER (shown only in admin mode) -->
+<div class="admin-banner" id="adminBanner" style="display:none">
+  🔒 Admin Mode — GitHub source URLs and edit controls are visible
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <div class="page-title">📚 Lesson Directory</div>
+    <div class="page-subtitle" id="lessonCountLabel">0 lessons</div>
+  </div>
+  <div class="header-actions" id="adminActions" style="display:none">
+    <button class="btn btn-ghost btn-sm" onclick="handleExport()">📥 Export JSON</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+      📤 Import JSON
+      <input type="file" accept=".json" onchange="handleImport(event)" style="display:none">
+    </label>
+    <button class="btn btn-primary" onclick="openForm()">➕ Add Lesson</button>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar" style="display:none">
+  <div class="status-pill" id="statusPill"></div>
+</div>
+
+<!-- LESSON GRID / EMPTY STATE -->
+<div id="lessonGrid" class="lesson-grid"></div>
+<div id="emptyState" class="empty-state" style="display:none">
+  <div class="empty-icon">📖</div>
+  <h3>No lessons yet</h3>
+  <p id="emptyHint">Add your first lesson using the button above.</p>
+</div>
+
+<!-- LESSON FORM MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add New Lesson</h2>
+    <div class="form-errors" id="formErrors" style="display:none"></div>
+
+    <div class="form-group">
+      <label class="form-label">Lesson Name *</label>
+      <input class="form-input" id="fieldName" type="text" placeholder="e.g., Introduction to Budgeting">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Subject</label>
+      <select class="form-select" id="fieldSubject">
+        <option value="other">📚 General / Other</option>
+        <option value="math">🔢 Math</option>
+        <option value="science">🔬 Science</option>
+        <option value="english">📖 English / Literacy</option>
+        <option value="history">🏛️ History</option>
+        <option value="coding">💻 Coding / Tech</option>
+        <option value="art">🎨 Art / Creative</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Video URL *</label>
+      <input class="form-input" id="fieldVideoUrl" type="url" placeholder="https://youtube.com/watch?v=...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        🔒 Source File URL
+        <span class="hint"> — paste your GitHub file link here (admin only)</span>
+      </label>
+      <input class="form-input" id="fieldGithubUrl" type="url" placeholder="https://github.com/AlexandraDigital/RFree-Academy/blob/main/...">
+      <p class="field-note">Students see a clean "View Lesson" link — your GitHub URL stays hidden.</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Teacher</label>
+      <input class="form-input" id="fieldTeacher" type="text" placeholder="Your name">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Outline / Description *</label>
+      <textarea class="form-textarea" id="fieldOutline" rows="5" placeholder="Key topics and lesson summary..."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitForm()">
+        <span id="submitLabel">Create Lesson</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────
+const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+const LS_KEY = 'rfree_lessons';
+let lessons = [];
+let editingId = null;
+
+const subjectEmojis = { math:'🔢', science:'🔬', english:'📖', history:'🏛️', coding:'💻', art:'🎨', other:'📚' };
+const subjectLabels  = { math:'Math', science:'Science', english:'English', history:'History', coding:'Coding', art:'Art', other:'General' };
+
+// ── INIT ──────────────────────────────────────────────────────────────
+function init() {
+  if (isAdmin) {
+    document.getElementById('adminBanner').style.display = 'flex';
+    document.getElementById('adminActions').style.display = 'flex';
+  }
+  loadLessons();
+  renderGrid();
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────
+function loadLessons() {
+  try {
+    lessons = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  } catch(e) {
+    lessons = [];
+  }
+}
+
+function saveLessons() {
+  localStorage.setItem(LS_KEY, JSON.stringify(lessons));
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function renderGrid() {
+  const grid  = document.getElementById('lessonGrid');
+  const empty = document.getElementById('emptyState');
+  const label = document.getElementById('lessonCountLabel');
+  const hint  = document.getElementById('emptyHint');
+
+  const count = lessons.length;
+  label.textContent = count === 0 ? 'No lessons' : `${count} lesson${count !== 1 ? 's' : ''}`;
+
+  if (count === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    hint.textContent = isAdmin
+      ? 'Click "Add Lesson" above to get started!'
+      : 'Check back soon — lessons are being added!';
+    return;
+  }
+
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+
+  grid.innerHTML = lessons.map(lesson => {
+    const emoji   = subjectEmojis[lesson.subject] || '📚';
+    const subject = subjectLabels[lesson.subject]  || 'General';
+    const videoUrl  = lesson.videoUrl || lesson.video || '';
+    const githubUrl = lesson.githubUrl || '';
+    const pagesUrl  = githubUrl ? convertToGitHubPagesUrl(githubUrl) : '';
+    const outline   = lesson.outline || '';
+    const teacher   = lesson.teacher || '';
+    const date      = lesson.date || '';
+
+    return `
+    <div class="lesson-card" id="card-${lesson.id}">
+      <div class="card-subject">${emoji} ${subject}</div>
+
+      ${videoUrl
+        ? `<a class="card-title" href="${escHtml(videoUrl)}" target="_blank" rel="noopener noreferrer">🎥 ${escHtml(lesson.title || lesson.name || 'Untitled')}</a>`
+        : `<div class="card-title" style="cursor:default">📚 ${escHtml(lesson.title || lesson.name || 'Untitled')}</div>`
+      }
+
+      ${outline ? `<div class="card-outline">${escHtml(outline)}</div>` : ''}
+
+      ${teacher || date ? `<div class="card-meta">${teacher ? `👤 ${escHtml(teacher)}` : ''}${date ? `&nbsp;· ${escHtml(date)}` : ''}</div>` : ''}
+
+      ${githubUrl ? `
+      <div class="card-resource">
+        <a class="resource-link" href="${escHtml(pagesUrl)}" target="_blank" rel="noopener noreferrer">📄 View Lesson Resource</a>
+        ${isAdmin ? `
+        <div class="admin-source">
+          🔒 <a href="${escHtml(githubUrl)}" target="_blank" rel="noopener noreferrer">View GitHub Source</a>
+        </div>` : ''}
+      </div>` : ''}
+
+      ${isAdmin ? `
+      <div class="card-actions">
+        <button class="btn btn-edit" onclick="openEdit('${lesson.id}')">✏️ Edit</button>
+        <button class="btn btn-danger" onclick="deleteLesson('${lesson.id}')">🗑️ Delete</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── URL UTILS ─────────────────────────────────────────────────────────
+function convertToGitHubPagesUrl(url) {
+  if (!url) return '';
+  try {
+    const m = url.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/[^/]+\/(.+)/);
+    if (m) return `https://${m[1].toLowerCase()}.github.io/${m[2]}/${m[3]}`;
+    const t = url.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/tree\/[^/]+\/(.+)/);
+    if (t) return `https://${t[1].toLowerCase()}.github.io/${t[2]}/${t[3]}`;
+    return url;
+  } catch { return url; }
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FORM ──────────────────────────────────────────────────────────────
+function openForm(lesson = null) {
+  editingId = lesson ? lesson.id : null;
+  document.getElementById('modalTitle').textContent = lesson ? 'Edit Lesson' : 'Add New Lesson';
+  document.getElementById('submitLabel').textContent = lesson ? 'Save Changes' : 'Create Lesson';
+  document.getElementById('fieldName').value       = lesson ? (lesson.title || lesson.name || '') : '';
+  document.getElementById('fieldSubject').value    = lesson ? (lesson.subject || 'other') : 'other';
+  document.getElementById('fieldVideoUrl').value   = lesson ? (lesson.videoUrl || lesson.video || '') : '';
+  document.getElementById('fieldGithubUrl').value  = lesson ? (lesson.githubUrl || '') : '';
+  document.getElementById('fieldTeacher').value    = lesson ? (lesson.teacher || '') : '';
+  document.getElementById('fieldOutline').value    = lesson ? (lesson.outline || '') : '';
+  document.getElementById('formErrors').style.display = 'none';
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function openEdit(id) {
+  const lesson = lessons.find(l => l.id === id);
+  if (lesson) openForm(lesson);
+}
+
+function closeForm() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  editingId = null;
+}
+
+function submitForm() {
+  const name      = document.getElementById('fieldName').value.trim();
+  const videoUrl  = document.getElementById('fieldVideoUrl').value.trim();
+  const githubUrl = document.getElementById('fieldGithubUrl').value.trim();
+  const outline   = document.getElementById('fieldOutline').value.trim();
+  const teacher   = document.getElementById('fieldTeacher').value.trim();
+  const subject   = document.getElementById('fieldSubject').value;
+
+  // Validate
+  const errors = [];
+  if (!name)     errors.push('Lesson name is required.');
+  if (!videoUrl) errors.push('Video URL is required.');
+  if (!outline)  errors.push('Outline / description is required.');
+  if (videoUrl  && !isValidUrl(videoUrl))  errors.push('Video URL format is invalid.');
+  if (githubUrl && !isValidUrl(githubUrl)) errors.push('Source file URL format is invalid.');
+
+  const errEl = document.getElementById('formErrors');
+  if (errors.length) {
+    errEl.style.display = 'block';
+    errEl.innerHTML = errors.map(e => `<p>❌ ${e}</p>`).join('');
+    return;
+  }
+  errEl.style.display = 'none';
+
+  if (editingId) {
+    // Update
+    lessons = lessons.map(l => l.id === editingId
+      ? { ...l, title: name, name, subject, videoUrl, video: videoUrl, githubUrl: githubUrl || undefined, teacher, outline }
+      : l
+    );
+    showToast('✅ Lesson updated!');
+  } else {
+    // Create — use same schema as main app (title + name for compat)
+    const lesson = {
+      id: Date.now().toString(),
+      title: name,
+      name,
+      subject,
+      emoji: subjectEmojis[subject] || '📚',
+      type: 'outline',
+      videoUrl,
+      video: videoUrl,
+      githubUrl: githubUrl || undefined,
+      teacher: teacher || 'Admin',
+      date: new Date().toLocaleDateString(),
+      outline,
+      transcript: '',
+      notes: '',
+      tags: [name],
+      duration: '',
+      grade: '',
+    };
+    lessons.unshift(lesson);
+    showToast('✅ Lesson created!');
+  }
+
+  saveLessons();
+  renderGrid();
+  closeForm();
+}
+
+function deleteLesson(id) {
+  if (!confirm('Are you sure you want to delete this lesson?')) return;
+  lessons = lessons.filter(l => l.id !== id);
+  saveLessons();
+  renderGrid();
+  showToast('🗑️ Lesson deleted.', 'error');
+}
+
+// ── IMPORT / EXPORT ───────────────────────────────────────────────────
+function handleExport() {
+  const blob = new Blob([JSON.stringify({ lessons }, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `rfree-lessons-${Date.now()}.json`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 Lessons exported!');
+}
+
+function handleImport(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = data.lessons || [];
+      lessons = [...lessons, ...imported];
+      saveLessons();
+      renderGrid();
+      showToast(`📤 Imported ${imported.length} lesson${imported.length !== 1 ? 's' : ''}!`);
+    } catch(err) {
+      showToast('❌ Import failed — check the file format.', 'error');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────
+function isValidUrl(url) {
+  try { new URL(url); return true; } catch { return false; }
+}
+
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeForm();
+});
+
+// ── BOOT ──────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
