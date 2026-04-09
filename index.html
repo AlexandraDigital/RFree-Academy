@@ -1452,6 +1452,7 @@ nav {
     </select>
     <button class="btn btn-mint" onclick="syncLessonsToGitHub()" title="Push all lessons to GitHub repository">🚀 Sync to GitHub</button>
     <button class="btn btn-primary" onclick="exportLessonsJSON()" title="Download lessons as JSON for backup">📥 Export Lessons</button>
+    <button class="btn btn-danger" onclick="clearLibrary()" title="Delete all lessons from library (cannot be undone)">🗑️ Clear Library</button>
   </div>
   <div class="library-grid" id="libraryGrid">
     <!-- populated by JS -->
@@ -2977,6 +2978,15 @@ function deleteLesson(id) {
   closeModal('lessonModal');
   renderLibrary();
   showToast('Lesson deleted');
+}
+
+function clearLibrary() {
+  if(!confirm('⚠️ Delete ALL lessons? This cannot be undone!')) return;
+  if(!confirm('Really? This will permanently delete all lessons in your library.')) return;
+  state.lessons = [];
+  saveLibrary();
+  renderLibrary();
+  showToast('✅ Library cleared!');
 }
 
 // ─────────────────────────── EXPORT & GITHUB SYNC ───────────────────────────
