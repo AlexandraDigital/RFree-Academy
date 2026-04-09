@@ -2877,6 +2877,25 @@ function saveOutlineToLibrary() {
 function saveLibrary() {
   localStorage.setItem('rfree_lessons', JSON.stringify(state.lessons));
   updateStatCounter();
+  syncToCloudflareWorker(); // Send to Cloudflare for GitHub sync
+}
+
+async function syncToCloudflareWorker() {
+  try {
+    const response = await fetch('https://rfree-academy.pages.dev/api/lessons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state.lessons)
+    });
+    const data = await response.json();
+    if(data.success) {
+      console.log('✅ Synced to Cloudflare Worker:', data.message);
+    } else {
+      console.warn('⚠️ Worker sync issue:', data.error);
+    }
+  } catch(e) {
+    console.warn('⚠️ Cloudflare Worker sync error (non-blocking):', e.message);
+  }
 }
 
 function updateStatCounter() {
