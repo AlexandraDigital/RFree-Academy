@@ -3,6 +3,7 @@ export interface Lesson {
   name: string;
   videoUrl: string;
   outline: string;
+  githubUrl?: string;
 }
 
 export interface LessonData {

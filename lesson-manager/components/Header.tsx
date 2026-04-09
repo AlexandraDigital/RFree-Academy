@@ -1,9 +1,8 @@
 import React from 'react';
-import { Lesson } from '../types';
 
 interface HeaderProps {
   onAddLesson: () => void;
-  onExport: (lessons: Lesson[]) => void;
+  onExport: () => void;
   onImport: (file: File) => void;
   lessonCount: number;
 }
@@ -27,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ onAddLesson, onExport, onImport,
           <button onClick={onAddLesson} className="btn-primary">
             ➕ Add Lesson
           </button>
-          <button onClick={() => onExport} className="btn-secondary">
+          <button onClick={onExport} className="btn-secondary">
             📥 Export
           </button>
           <label className="btn-secondary" style={{ cursor: 'pointer', marginBottom: 0 }}>

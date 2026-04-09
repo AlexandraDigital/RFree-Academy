@@ -33,6 +33,18 @@ export const LessonList: React.FC<LessonListProps> = ({ lessons, onEdit, onDelet
           <div className="lesson-outline">
             <p>{lesson.outline}</p>
           </div>
+          {lesson.githubUrl && (
+            <div className="lesson-github">
+              <a
+                href={lesson.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="github-link"
+              >
+                🔗 View on GitHub
+              </a>
+            </div>
+          )}
           <div className="lesson-actions">
             <button
               onClick={() => onEdit(lesson)}

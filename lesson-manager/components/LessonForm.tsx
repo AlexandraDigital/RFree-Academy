@@ -11,6 +11,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
   const [name, setName] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [outline, setOutline] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
       setName(lesson.name);
       setVideoUrl(lesson.videoUrl);
       setOutline(lesson.outline);
+      setGithubUrl(lesson.githubUrl || '');
     }
   }, [lesson]);
 
@@ -26,7 +28,8 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
     if (!name.trim()) newErrors.push('Lesson name is required');
     if (!videoUrl.trim()) newErrors.push('Video URL is required');
     if (!outline.trim()) newErrors.push('Outline is required');
-    if (videoUrl && !isValidUrl(videoUrl)) newErrors.push('Invalid URL format');
+    if (videoUrl && !isValidUrl(videoUrl)) newErrors.push('Invalid video URL format');
+    if (githubUrl && !isValidUrl(githubUrl)) newErrors.push('Invalid GitHub URL format');
     setErrors(newErrors);
     return newErrors.length === 0;
   };
@@ -49,6 +52,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
       name,
       videoUrl,
       outline,
+      githubUrl: githubUrl.trim() || undefined,
     };
     onSave(newLesson);
   };
@@ -84,6 +88,16 @@ export const LessonForm: React.FC<LessonFormProps> = ({ lesson, onSave, onCancel
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://youtube.com/watch?v=..."
+            />
+          </div>
+
+          <div className="form-group">
+            <label>GitHub URL (optional)</label>
+            <input
+              type="url"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              placeholder="https://github.com/AlexandraDigital/RFree-Academy/..."
             />
           </div>
 
