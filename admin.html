@@ -121,8 +121,9 @@
 
   // ── ACCESS GUARD ──────────────────────────────────────────────────
   async function checkAdmin() {
-    console.log('Checking admin access...');
     
+    console.log('Checking admin access...');
+     
     if (!TOKEN) {
       console.log('No token found');
       redirect();
@@ -164,6 +165,8 @@ document.getElementById("adminButton").style.display = "block";
     alert('Access denied. Please sign in as an admin.');
     window.location.href = 'index.html';
   }
+  document.addEventListener('DOMContentLoaded', checkAdmin);
+  
 
   // ── STATS ─────────────────────────────────────────────────────────
   async function loadStats() {
