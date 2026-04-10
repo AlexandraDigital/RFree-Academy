@@ -4823,90 +4823,64 @@ function submitOrgApplication() {
   showToast('📧 Opening your email app to submit your organization!', 'success');
 }
 
-async function createAccount() {
-  const modal = document.getElementById('loginModal');
-  const emailEl = modal.querySelector('input[type="email"]');
-  const passEl  = modal.querySelector('input[type="password"]');
-  const email = emailEl?.value.trim();
-  const password = passEl?.value;
-  if(!email) { showToast('Please enter your email!', 'error'); return; }
-  if(!password) { showToast('Please enter a password!', 'error'); return; }
-  try {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if(!res.ok || data.error) { showToast('\u274c ' + (data.error || 'Sign up failed.'), 'error'); return; }
-    localStorage.setItem('rfree_token', data.token);
-    localStorage.setItem('rfree_role', data.role);
-    localStorage.setItem('rfree_userId', data.userId);
-    localStorage.setItem('rfree_email', email);
-    localStorage.setItem('rfree_logged_in', '1');
-    const dispEl = document.getElementById('displayName');
-    const userEmailEl = document.getElementById('userEmail');
-    if(dispEl && !dispEl.value) dispEl.value = email.split('@')[0];
-    if(userEmailEl) userEmailEl.value = email;
-    closeModal('loginModal');
-    if(data.role === 'admin') {
-      showToast('\U0001f389 Welcome, Admin!', 'success');
-      showAdminButton();
-      setTimeout(() => { window.location.href = 'admin.html'; }, 800);
-    } else {
-      showToast('\U0001f389 Welcome to RFree Academy!', 'success');
-    }
-  } catch(e) {
-    showToast('\u274c Could not connect to server.', 'error');
-  }
-}
-
 async function signIn() {
-  const data = await res.json();
   const modal = document.getElementById('loginModal');
   const emailEl = modal.querySelector('input[type="email"]');
   const passEl  = modal.querySelector('input[type="password"]');
+
   const email = emailEl?.value.trim();
   const password = passEl?.value;
-  if(!email) { showToast('Please enter your email!', 'error'); return; }
-  if(!password) { showToast('Please enter a password!', 'error'); return; }
+
+  if (!email) {
+    showToast('Please enter your email!', 'error');
+    return;
+  }
+
+  if (!password) {
+    showToast('Please enter a password!', 'error');
+    return;
+  }
+
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
-    })
-const data = await res.json();
+    });
 
-if (!res.ok || data.error) {
-  showToast('❌ ' + (data.error || 'Login failed. Check your email and password.'), 'error');
-  return;
-}
-    
-localStorage.setItem('rfree_token', data.token);
-localStorage.setItem('rfree_role', data.role);
-localStorage.setItem('rfree_userId', data.userId);
-localStorage.setItem('rfree_email', email);
-localStorage.setItem('rfree_logged_in', '1');
+    const data = await res.json();
 
-closeModal('loginModal');
+    if (!res.ok || data.error) {
+      showToast('❌ ' + (data.error || 'Login failed. Check your email and password.'), 'error');
+      return;
+    }
 
-if (data.role === 'admin') {
-  showToast('👑 Welcome back, Admin!', 'success');
-  showAdminButton();
+    // ✅ STORE USER DATA
+    localStorage.setItem('rfree_token', data.token);
+    localStorage.setItem('rfree_role', data.role);
+    localStorage.setItem('rfree_userId', data.userId);
+    localStorage.setItem('rfree_email', email);
+    localStorage.setItem('rfree_logged_in', '1');
 
-  setTimeout(() => {
-    window.location.href = 'admin.html';
-  }, 800);
+    closeModal('loginModal');
 
-} else {
-  showToast('👋 Welcome back!', 'success');
-}
-  } catch(e) {
-    showToast('\u274c Could not connect to server.', 'error');
+    // 👑 ADMIN LOGIC
+    if (data.role === 'admin') {
+      showToast('👑 Welcome back, Admin!', 'success');
+      showAdminButton();
+
+      setTimeout(() => {
+        window.location.href = 'admin.html';
+      }, 800);
+
+    } else {
+      showToast('👋 Welcome back!', 'success');
+    }
+
+  } catch (e) {
+    showToast('❌ Could not connect to server.', 'error');
   }
 }
-
 
 
 // ─────────────────────────── PWA INSTALL ───────────────────────────
