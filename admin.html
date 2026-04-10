@@ -143,13 +143,14 @@
       console.log('User data:', user);
 
       if (!user || user.role !== 'admin') {
-        console.log('User is not admin. Role:', user?.role);
-        redirect();
-        return;
-      }
+  console.log('User is not admin. Role:', user?.role);
+  redirect();
+  return;
+}
 
-      console.log('✅ Admin access granted');
-      document.getElementById("adminButton").style.display = "block";
+console.log('✅ Admin access granted');
+
+document.getElementById("adminButton").style.display = "block";
     } catch(e) {
       console.error('Admin check error:', e);
       redirect();
