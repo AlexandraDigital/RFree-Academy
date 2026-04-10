@@ -149,6 +149,7 @@
       }
 
       console.log('✅ Admin access granted');
+      document.getElementById("adminButton").style.display = "block";
     } catch(e) {
       console.error('Admin check error:', e);
       redirect();
