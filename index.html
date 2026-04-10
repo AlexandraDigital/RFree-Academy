@@ -2559,6 +2559,7 @@ nav {
     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
     <h2>Join RFree Academy</h2>
     <p>Create a free account to save lessons, track progress, and get certificates.</p>
+
 <div class="auth-toggle">
   <button id="signupTab" class="active" onclick="switchMode('signup')">Sign Up</button>
   <button id="signinTab" onclick="switchMode('signin')">Sign In</button>
@@ -2579,11 +2580,9 @@ nav {
       <div class="text-muted mt-1" style="font-size:0.78rem">Use this when your frontend is on Pages and your backend is a separate Worker.</div>
     </div>
 
-    <button class="btn btn-primary w-full btn-lg" onclick="createAccount()">Create Free Account</button>
-
-    <div class="divider"></div>
-
-    <button class="btn btn-ghost w-full" onclick="signIn()">Sign In Instead</button>
+    <button id="submitBtn" class="btn-primary" onclick="handleAuth()">Create Free Account</button>
+ <div class="divider"></div>
+</div>
   </div>
 </div>
 
