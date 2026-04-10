@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFREE Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1a0a2e; color: #fff; min-height: 100vh; padding: 2rem; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.8rem; color: #f59e0b; }
+    .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-back   { background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); text-decoration: none; display: inline-block; }
+    .btn-load   { background: #7c3aed; color: #fff; }
+    .btn-role   { background: rgba(56,189,248,0.15); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .btn-role.admin-btn { background: rgba(245,158,11,0.15); color: #fde68a; border-color: rgba(245,158,11,0.4); }
+    .btn-delete { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 2rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(45,20,84,0.6); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-card .num { font-size: 2rem; font-weight: 800; color: #f59e0b; }
+    .stat-card .lbl { font-size: 0.8rem; color: #c084fc; margin-top: 4px; }
+    h2 { font-size: 1.1rem; color: #c084fc; margin-bottom: 1rem; }
+    .user-card { background: rgba(45,20,84,0.5); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .user-info { display: flex; flex-direction: column; gap: 3px; }
+    .user-email { font-weight: 600; font-size: 0.95rem; }
+    .user-role-badge { display: inline-block; font-size: 0.72rem; padding: 2px 10px; border-radius: 100px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .role-admin   { background: rgba(245,158,11,0.2);  color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
+    .role-teacher { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .role-student { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+    .user-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty-msg { color: #a1a1aa; font-size: 0.9rem; padding: 1rem 0; }
+    .error-msg  { color: #fca5a5; font-size: 0.9rem; padding: 1rem 0; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>👑 Admin Panel</h1>
+  <a href="index.html" class="btn btn-back">← Back to Academy</a>
+</div>
+
+<div class="action-row">
+  <button class="btn btn-load" onclick="loadStats()">📊 Refresh Stats</button>
+  <button class="btn btn-load" onclick="loadUsers()">👤 Refresh Users</button>
+</div>
+
+<h2>📊 Stats</h2>
+<div class="stats-grid">
+  <div class="stat-card"><div class="num" id="statUsers">—</div><div class="lbl">Total Users</div></div>
+  <div class="stat-card"><div class="num" id="statLessons">—</div><div class="lbl">Completed Lessons</div></div>
+  <div class="stat-card"><div class="num" id="statAdmins">—</div><div class="lbl">Admins</div></div>
+  <div class="stat-card"><div class="num" id="statTeachers">—</div><div class="lbl">Teachers</div></div>
+</div>
+
+<h2>👤 Users</h2>
+<div id="users"><div class="empty-msg">Loading...</div></div>
+
+<script>
+  const TOKEN = localStorage.getItem('rfree_token');
+
+  // ── ACCESS GUARD ──────────────────────────────────────────────────
+  async function checkAdmin() {
+    if (!TOKEN) { redirect(); return; }
+    try {
+      const res  = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const user = await res.json();
+      if (!user || user.role !== 'admin') { redirect(); }
+    } catch(e) {
+      redirect();
+    }
+  }
+
+  function redirect() {
+    alert('Access denied. Please sign in as an admin.');
+    window.location.href = 'index.html';
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const res  = await fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const data = await res.json();
+      if (!res.ok) { console.error('Stats error:', data); return; }
+      document.getElementById('statUsers').textContent   = data.totalUsers    ?? '—';
+      document.getElementById('statLessons').textContent = data.completedLessons ?? '—';
+      document.getElementById('statAdmins').textContent  = data.totalAdmins   ?? '—';
+      document.getElementById('statTeachers').textContent= data.totalTeachers ?? '—';
+    } catch(e) {
+      console.error('Failed to load stats:', e);
+    }
+  }
+
+  // ── USERS ─────────────────────────────────────────────────────────
+  async function loadUsers() {
+    const container = document.getElementById('users');
+    container.innerHTML = '<div class="empty-msg">Loading...</div>';
+    try {
+      const res  = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        container.innerHTML = '<div class="error-msg">❌ Failed to load users: ' + (data.error || 'Unknown error') + '</div>';
+        return;
+      }
+      if (data.length === 0) {
+        container.innerHTML = '<div class="empty-msg">No users found.</div>';
+        return;
+      }
+      container.innerHTML = data.map(u => `
+        <div class="user-card">
+          <div class="user-info">
+            <span class="user-email">${u.email}</span>
+            <span class="user-role-badge role-${u.role}">${u.role}</span>
+          </div>
+          <div class="user-actions">
+            <button class="btn btn-role"             onclick="changeRole(${u.id}, 'student')">Student</button>
+            <button class="btn btn-role"             onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
+            <button class="btn btn-role admin-btn"   onclick="changeRole(${u.id}, 'admin')">Admin</button>
+            <button class="btn btn-delete"           onclick="deleteUser(${u.id})">🗑 Delete</button>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {
+      container.innerHTML = '<div class="error-msg">❌ Could not connect to server.</div>';
+    }
+  }
+
+  // ── CHANGE ROLE ───────────────────────────────────────────────────
+  async function changeRole(userId, role) {
+    try {
+      await fetch('/api/admin/role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId, role })
+      });
+      loadUsers();
+      loadStats();
+    } catch(e) {
+      alert('Failed to change role.');
+    }
+  }
+
+  // ── DELETE USER ───────────────────────────────────────────────────
+  async function deleteUser(userId) {
+    if (!confirm('Delete this user? This cannot be undone.')) return;
+    try {
+      await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId })
+      });
+      loadUsers();
+      loadStats();
+    } catch(e) {
+      alert('Failed to delete user.');
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────
+  checkAdmin().then(() => {
+    loadStats();
+    loadUsers();
+  });
+</script>
+</body>
+</html>
