@@ -2627,7 +2627,7 @@ nav {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+
 if (isAdmin) { document.addEventListener('DOMContentLoaded', () => { const btn = document.getElementById('lessonMgrBtn'); if(btn) btn.style.display = 'flex'; }); }
 
 // ─── ADMIN BUTTON HELPER ───
@@ -4862,6 +4862,7 @@ async function createAccount() {
 }
 
 async function signIn() {
+  const data = await res.json();
   const modal = document.getElementById('loginModal');
   const emailEl = modal.querySelector('input[type="email"]');
   const passEl  = modal.querySelector('input[type="password"]');
@@ -4874,26 +4875,39 @@ async function signIn() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if(!res.ok || data.error) { showToast('\u274c ' + (data.error || 'Login failed. Check your email and password.'), 'error'); return; }
-    localStorage.setItem('rfree_token', data.token);
-    localStorage.setItem('rfree_role', data.role);
-    localStorage.setItem('rfree_userId', data.userId);
-    localStorage.setItem('rfree_email', email);
-    localStorage.setItem('rfree_logged_in', '1');
-    closeModal('loginModal');
-    if(data.role === 'admin') {
-      showToast('\U0001f451 Welcome back, Admin!', 'success');
-      showAdminButton();
-      setTimeout(() => { window.location.href = 'admin.html'; }, 800);
-    } else {
-      showToast('\U0001f44b Welcome back!', 'success');
-    }
+    })
+const data = await res.json();
+
+if (!res.ok || data.error) {
+  showToast('❌ ' + (data.error || 'Login failed. Check your email and password.'), 'error');
+  return;
+}
+    
+localStorage.setItem('rfree_token', data.token);
+localStorage.setItem('rfree_role', data.role);
+localStorage.setItem('rfree_userId', data.userId);
+localStorage.setItem('rfree_email', email);
+localStorage.setItem('rfree_logged_in', '1');
+
+closeModal('loginModal');
+
+if (data.role === 'admin') {
+  showToast('👑 Welcome back, Admin!', 'success');
+  showAdminButton();
+
+  setTimeout(() => {
+    window.location.href = 'admin.html';
+  }, 800);
+
+} else {
+  showToast('👋 Welcome back!', 'success');
+}
   } catch(e) {
     showToast('\u274c Could not connect to server.', 'error');
   }
 }
+
+
 
 // ─────────────────────────── PWA INSTALL ───────────────────────────
 let deferredPrompt;
