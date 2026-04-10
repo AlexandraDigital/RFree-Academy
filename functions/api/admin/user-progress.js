@@ -2,8 +2,6 @@
 // GET  /api/admin/user-progress?userId=X  → returns all track progress for a user
 // POST /api/admin/user-progress            → toggles a single lesson for a user
 
-import { verifyToken } from "../../auth.js";
-
 async function hashStr(str) {
   const enc = new TextEncoder().encode(str);
   const buf = await crypto.subtle.digest("SHA-256", enc);
