@@ -2575,13 +2575,11 @@ nav {
     </div>
 
 <!-- Sign in MODAL -->
-<div class="modal-overlay" id="signInBtn">
+<div class="modal-overlay" id="loginModal">
   <div class="modal">
-     <button class="modal-close" onclick="closeModal('')">x</button>
-   
-
-  <h2>Sign in</h2>
-    <p>Learning takes one step!</p>
+     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+     <h2>Sign in</h2>
+      <p>Learning takes one step!</p>
 
 
 <div class="auth-toggle">
@@ -2595,7 +2593,6 @@ nav {
       <input id="password" class="form-input" type="password" placeholder="••••••••" />
 
 
-      <button id="submitBtn" class="btn-primary" onclick="handleAuth()"> Sign in</button>
       </div>
     
   </div>
