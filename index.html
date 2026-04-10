@@ -1369,8 +1369,8 @@ nav {
   <div class="nav-actions">
     <a id="lessonMgrBtn" href="./lesson-manager/" target="_blank" class="btn btn-ghost btn-sm" style="display:none;gap:0.5rem;text-decoration:none">🗂️ Lesson Manager</a>
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲 Install</button>
-    <button class="btn btn-ghost" id="signInBtn" onclick="showModal('signInBtn')">Sign In</button>
-    <button class="btn btn-primary" id="joinBtn" onclick="showModal('joinBtn')">Join Free</button>
+    <button class="btn btn-ghost" id="signInBtn" onclick="showModal('loginModal')">Sign In</button>
+    <button class="btn btn-primary" id="joinBtn" onclick="showModal('loginModal')">Join Free</button>
     <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="logout()" style="display:none">🚪 Log Out</button>
   </div>
 </nav>
@@ -2555,9 +2555,9 @@ nav {
 </div>
 
 <!-- Create Account MODAL -->
-<div class="modal-overlay" id="joinBtn">
+<div class="modal-overlay" id="loginModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('joinBtn')">✕</button>
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
     <h2>Join RFree Academy</h2>
     <p>Create a free account to save lessons, track progress, and get certificates.</p>
 
@@ -2577,7 +2577,7 @@ nav {
 <!-- Sign in MODAL -->
 <div class="modal-overlay" id="signInBtn">
   <div class="modal">
-     <button class="modal-close" onclick="closeModal('signInBtn')">Happy</button>
+     <button class="modal-close" onclick="closeModal('')">x</button>
    
 
   <h2>Sign in</h2>
