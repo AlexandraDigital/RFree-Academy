@@ -2553,7 +2553,7 @@ nav {
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- Create Account MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
@@ -2570,8 +2570,13 @@ nav {
     <div class="form-group">
       <label class="form-label">Password</label>
       <input id="password" class="form-input" type="password" placeholder="••••••••" />
+      <button id="submitBtn" class="btn-primary" onclick="handleAuth()"> Join in</button>
     </div>
 
+<!-- Sign in MODAL -->
+<div class="modal-overlay" id="SignUp">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('')">✕</button>
 
   <h2>Sign in</h2>
     <p>Learning takes one step!</p>
@@ -2587,7 +2592,10 @@ nav {
     <div class="form-group">
       <label class="form-label">Password</label>
       <input id="password" class="form-input" type="password" placeholder="••••••••" />
+      <button id="submitBtn" class="btn-primary" onclick="handleAuth()"> Sign in</button>
     </div>
+
+    
 </div>
   </div>
 </div>
