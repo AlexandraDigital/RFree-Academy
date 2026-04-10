@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFREE Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1a0a2e; color: #fff; min-height: 100vh; padding: 2rem; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.8rem; color: #f59e0b; }
+    .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-back  { background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); text-decoration: none; display: inline-block; }
+    .btn-load  { background: #7c3aed; color: #fff; }
+    .btn-role  { background: rgba(56,189,248,0.15); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .btn-role.admin-btn { background: rgba(245,158,11,0.15); color: #fde68a; border-color: rgba(245,158,11,0.4); }
+    .btn-delete { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 2rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(45,20,84,0.6); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-card .num { font-size: 2rem; font-weight: 800; color: #f59e0b; }
+    .stat-card .lbl { font-size: 0.8rem; color: #c084fc; margin-top: 4px; }
+    h2 { font-size: 1.1rem; color: #c084fc; margin-bottom: 1rem; }
+    .user-card { background: rgba(45,20,84,0.5); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .user-info { display: flex; flex-direction: column; gap: 3px; }
+    .user-email { font-weight: 600; font-size: 0.95rem; }
+    .user-role-badge { display: inline-block; font-size: 0.72rem; padding: 2px 10px; border-radius: 100px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .role-admin   { background: rgba(245,158,11,0.2);   color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
+    .role-teacher { background: rgba(16,185,129,0.15);  color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .role-student { background: rgba(168,85,247,0.15);  color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+    .user-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty-msg { color: #a1a1aa; font-size: 0.9rem; padding: 1rem 0; }
+    .notice { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.82rem; color: #fde68a; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>👑 Admin Panel</h1>
+  <a href="index.html" class="btn btn-back">← Back to Academy</a>
+</div>
+
+<div class="notice">
+  ℹ️ This panel manages users stored locally in your browser. Users appear here after signing up on this device.
+</div>
+
+<div class="action-row">
+  <button class="btn btn-load" onclick="loadStats()">📊 Refresh Stats</button>
+  <button class="btn btn-load" onclick="loadUsers()">👤 Refresh Users</button>
+</div>
+
+<h2>📊 Stats</h2>
+<div class="stats-grid">
+  <div class="stat-card"><div class="num" id="statUsers">—</div><div class="lbl">Registered Users</div></div>
+  <div class="stat-card"><div class="num" id="statLessons">—</div><div class="lbl">Lessons in Library</div></div>
+  <div class="stat-card"><div class="num" id="statAdmins">—</div><div class="lbl">Admins</div></div>
+  <div class="stat-card"><div class="num" id="statTeachers">—</div><div class="lbl">Teachers</div></div>
+</div>
+
+<h2>👤 Users</h2>
+<div id="users"><div class="empty-msg">Click "Refresh Users" to load.</div></div>
+
+<script>
+  // ── ACCESS GUARD ──────────────────────────────────────────────────
+  function checkAdmin() {
+    const role = localStorage.getItem('rfree_role');
+    const loggedIn = localStorage.getItem('rfree_logged_in') === '1';
+    if (!loggedIn || role !== 'admin') {
+      alert('Access denied. You must be signed in as an admin.');
+      window.location.href = 'index.html';
+    }
+  }
+  checkAdmin();
+
+  // ── USER STORE HELPERS ────────────────────────────────────────────
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('rfree_users') || '[]');
+  }
+  function saveUsers(users) {
+    localStorage.setItem('rfree_users', JSON.stringify(users));
+  }
+
+  // Register current user into the users list if not already there
+  (function seedCurrentUser() {
+    const email = localStorage.getItem('rfree_email');
+    const role  = localStorage.getItem('rfree_role') || 'admin';
+    if (!email) return;
+    const users = getUsers();
+    if (!users.find(u => u.email === email)) {
+      users.push({ id: Date.now(), email, role });
+      saveUsers(users);
+    }
+  })();
+
+  // ── STATS ─────────────────────────────────────────────────────────
+  function loadStats() {
+    const users   = getUsers();
+    const lessons = JSON.parse(localStorage.getItem('rfree_lessons') || '[]');
+    document.getElementById('statUsers').textContent    = users.length;
+    document.getElementById('statLessons').textContent  = lessons.length;
+    document.getElementById('statAdmins').textContent   = users.filter(u => u.role === 'admin').length;
+    document.getElementById('statTeachers').textContent = users.filter(u => u.role === 'teacher').length;
+  }
+
+  // ── USERS ─────────────────────────────────────────────────────────
+  function loadUsers() {
+    const users = getUsers();
+    const container = document.getElementById('users');
+    if (users.length === 0) {
+      container.innerHTML = '<div class="empty-msg">No users found. Users appear here after signing up on this device.</div>';
+      return;
+    }
+    container.innerHTML = users.map(u => `
+      <div class="user-card">
+        <div class="user-info">
+          <span class="user-email">${u.email}</span>
+          <span class="user-role-badge role-${u.role}">${u.role}</span>
+        </div>
+        <div class="user-actions">
+          <button class="btn btn-role" onclick="changeRole(${u.id}, 'student')">Student</button>
+          <button class="btn btn-role" onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
+          <button class="btn btn-role admin-btn" onclick="changeRole(${u.id}, 'admin')">Admin</button>
+          <button class="btn btn-delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── CHANGE ROLE ───────────────────────────────────────────────────
+  function changeRole(userId, role) {
+    const users = getUsers();
+    const user  = users.find(u => u.id === userId);
+    if (!user) return;
+    user.role = role;
+    saveUsers(users);
+    // Sync own role if changing self
+    if (user.email === localStorage.getItem('rfree_email')) {
+      localStorage.setItem('rfree_role', role);
+    }
+    loadUsers();
+    loadStats();
+  }
+
+  // ── DELETE USER ───────────────────────────────────────────────────
+  function deleteUser(userId) {
+    if (!confirm('Delete this user? This cannot be undone.')) return;
+    saveUsers(getUsers().filter(u => u.id !== userId));
+    loadUsers();
+    loadStats();
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────
+  loadStats();
+  loadUsers();
+</script>
+</body>
+</html>
