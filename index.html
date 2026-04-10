@@ -1369,8 +1369,8 @@ nav {
   <div class="nav-actions">
     <a id="lessonMgrBtn" href="./lesson-manager/" target="_blank" class="btn btn-ghost btn-sm" style="display:none;gap:0.5rem;text-decoration:none">🗂️ Lesson Manager</a>
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲 Install</button>
-    <button class="btn btn-ghost" id="signInBtn" onclick="showModal('Signin')">Sign In</button>
-    <button class="btn btn-primary" id="joinBtn" onclick="showModal('Joinin')">Join Free</button>
+    <button class="btn btn-ghost" id="signInBtn" onclick="showModal('loginModal')">Sign In</button>
+    <button class="btn btn-primary" id="joinBtn" onclick="showModal('loginModal')">Join Free</button>
     <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="logout()" style="display:none">🚪 Log Out</button>
   </div>
 </nav>
@@ -2555,7 +2555,7 @@ nav {
 </div>
 
 <!-- Create Account MODAL -->
-<div class="modal-overlay" id="Joinin">
+<div class="modal-overlay" id="loginModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
     <h2>Join RFree Academy</h2>
@@ -2573,11 +2573,12 @@ nav {
       <input id="password" class="form-input" type="password" placeholder="••••••••" />
       <button id="submitBtn" class="btn-primary" onclick="handleAuth()"> Join in</button>
     </div>
-    
+
 <!-- Sign in MODAL -->
-<div class="modal-overlay" id="Signin">
+<div class="modal-overlay" id="SignUp">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('Signin')">✕</button>
+     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+   
 
   <h2>Sign in</h2>
     <p>Learning takes one step!</p>
