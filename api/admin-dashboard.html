@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,6 +199,9 @@
     <div class="nav-item" onclick="showPage('certificates')" id="nav-certificates">
       <span class="nav-icon">🏆</span> Certificates
     </div>
+    <div class="nav-item" onclick="showPage('tracks')" id="nav-tracks">
+      <span class="nav-icon">🌱</span> Tracks & Lessons
+    </div>
     <div class="sidebar-footer">
       <button class="btn btn-ghost btn-full" onclick="logout()">Sign Out</button>
     </div>
@@ -279,6 +283,37 @@
             <thead><tr><th>Student</th><th>Course</th><th>Code</th><th>Issued</th></tr></thead>
             <tbody id="certs-body"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- TRACKS & LESSONS -->
+      <div class="page" id="page-tracks">
+        <div style="margin-bottom:20px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:0.88rem;line-height:1.7;color:var(--muted)">
+            <strong style="color:var(--text);display:block;margin-bottom:6px">📁 Where do lessons live?</strong>
+            Lesson <strong style="color:var(--text)">names &amp; bullet points</strong> live inside <code style="background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--accent)">index.html → trackData</code> (~line 4268).<br>
+            Lesson <strong style="color:var(--text)">videos</strong> are linked via <code style="background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--accent)">lesson-manager/lessons.json</code> using <code style="background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--accent)">trackId + lessonIndex</code>.<br>
+            Lesson <strong style="color:var(--text)">.md files</strong> (optional written content) go in <code style="background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--accent)">lessons/{trackId}/lesson-1.md</code> in your GitHub repo.
+          </div>
+        </div>
+
+        <!-- Track selector -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <h3>Select a Track to Edit</h3>
+          </div>
+          <div style="padding:16px;display:flex;flex-wrap:wrap;gap:10px" id="track-selector"></div>
+        </div>
+
+        <!-- Lesson editor panel -->
+        <div id="track-editor" style="display:none">
+          <div class="card">
+            <div class="card-header">
+              <h3 id="track-editor-title">Lessons</h3>
+              <button class="btn btn-success" onclick="addNewLesson()">+ Add Lesson</button>
+            </div>
+            <div id="lessons-editor-list" style="padding:16px"></div>
+          </div>
         </div>
       </div>
 
@@ -414,7 +449,7 @@ function logout() {
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────────
-const PAGE_TITLES = { dashboard:'Dashboard', courses:'Courses', students:'Students', progress:'Progress', certificates:'Certificates' };
+const PAGE_TITLES = { dashboard:'Dashboard', courses:'Courses', students:'Students', progress:'Progress', certificates:'Certificates', tracks:'Tracks & Lessons' };
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -427,6 +462,7 @@ function showPage(name) {
   if (name === 'students')  loadStudents();
   if (name === 'progress')  loadProgressPage();
   if (name === 'certificates') loadCertificates();
+  if (name === 'tracks')       loadTracksPage();
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────────
@@ -720,6 +756,218 @@ async function quickIssueCert(userId, courseId) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') doLogin();
 });
+
+// ════════════════════════════════════════════════════════════
+//  TRACKS & LESSONS EDITOR
+// ════════════════════════════════════════════════════════════
+
+const TRACK_LIST = [
+  { id:'financial',       name:'Financial Literacy',          emoji:'💰' },
+  { id:'emotional',       name:'Emotional Intelligence',      emoji:'💗' },
+  { id:'health',          name:'Mental & Physical Wellness',  emoji:'🧠' },
+  { id:'rights',          name:'Know Your Rights',            emoji:'⚖️' },
+  { id:'leadership',      name:'Leadership & Influence',      emoji:'🦁' },
+  { id:'entrepreneurship',name:'Entrepreneurship from Zero',  emoji:'🚀' },
+  { id:'faith',           name:'Faith Foundations',           emoji:'🙏' },
+  { id:'purpose',         name:'Discovering Your Purpose',    emoji:'🌟' },
+  { id:'theology',        name:'Biblical Wisdom',             emoji:'📖' },
+  { id:'ministry',        name:'Community Ministry',          emoji:'🕊️' },
+  { id:'healing',         name:'Spiritual Healing',           emoji:'💜' },
+  { id:'ethics',          name:'Ethics & Kingdom Values',     emoji:'⭐' },
+  { id:'teachertraining', name:'How to Teach Effectively',    emoji:'📐' },
+  { id:'parenting',       name:'Parenting & Raising Children',emoji:'👨‍👩‍👧' },
+];
+
+let currentTrackId = null;
+let trackLessons   = {};
+let videoMap       = {};
+let hasUnsaved     = false;
+
+function loadTracksPage() {
+  const sel = document.getElementById('track-selector');
+  sel.innerHTML = TRACK_LIST.map(t => `
+    <button class="btn btn-ghost" id="tsel-${t.id}" onclick="selectTrack('${t.id}')"
+      style="border-radius:999px;padding:8px 16px;font-size:0.85rem">
+      ${t.emoji} ${t.name}
+    </button>`).join('');
+  const cached = localStorage.getItem('rfree_video_map');
+  if (cached) try { videoMap = JSON.parse(cached); } catch {}
+}
+
+async function selectTrack(trackId) {
+  if (hasUnsaved && !confirm('You have unsaved changes. Discard them?')) return;
+  hasUnsaved = false;
+  currentTrackId = trackId;
+
+  document.querySelectorAll('[id^="tsel-"]').forEach(b => {
+    b.style.background=''; b.style.color=''; b.style.borderColor='';
+  });
+  const selBtn = document.getElementById('tsel-' + trackId);
+  if (selBtn) { selBtn.style.background='rgba(108,99,255,0.3)'; selBtn.style.color='#fff'; selBtn.style.borderColor='var(--accent)'; }
+
+  const track = TRACK_LIST.find(t => t.id === trackId);
+  document.getElementById('track-editor-title').textContent = track.emoji + ' ' + track.name + ' — Lessons';
+  document.getElementById('track-editor').style.display = 'block';
+
+  if (!trackLessons[trackId]) {
+    try {
+      const res = await api('/api/courses/' + trackId + '/lessons');
+      if (Array.isArray(res) && res.length) {
+        trackLessons[trackId] = res.map((l, i) => ({
+          title: l.title || '',
+          points: l.points ? (typeof l.points === 'string' ? JSON.parse(l.points) : l.points) : [],
+          video: l.video_url || videoMap[trackId + ':' + i] || ''
+        }));
+      } else {
+        // Try loading from course data field
+        const course = await api('/api/courses/' + trackId);
+        if (course && course.data) {
+          try {
+            const parsed = JSON.parse(course.data);
+            trackLessons[trackId] = Array.isArray(parsed) ? parsed : [];
+          } catch { trackLessons[trackId] = []; }
+        } else {
+          trackLessons[trackId] = [];
+        }
+      }
+    } catch { trackLessons[trackId] = []; }
+  }
+  renderLessonsEditor();
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function markDirty() { hasUnsaved = true; }
+
+function renderLessonsEditor() {
+  const lessons = trackLessons[currentTrackId] || [];
+  const el = document.getElementById('lessons-editor-list');
+
+  if (!lessons.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">No lessons yet.<br><button class="btn btn-success" style="margin-top:12px" onclick="addNewLesson()">+ Add First Lesson</button></div>';
+    return;
+  }
+
+  el.innerHTML = lessons.map((lesson, i) => `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px" id="lcard-${i}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="color:var(--muted);font-weight:700;min-width:24px">${i+1}.</span>
+        <input value="${esc(lesson.title)}" oninput="trackLessons[currentTrackId][${i}].title=this.value;markDirty()"
+          style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;font-weight:600"
+          placeholder="Lesson title…"/>
+        <button class="btn btn-ghost" style="padding:5px 9px" onclick="moveLessonUp(${i})" ${i===0?'disabled':''}>↑</button>
+        <button class="btn btn-ghost" style="padding:5px 9px" onclick="moveLessonDown(${i})" ${i===lessons.length-1?'disabled':''}>↓</button>
+        <button class="btn btn-danger" style="padding:5px 9px" onclick="deleteLesson(${i})">🗑</button>
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:0.73rem;color:var(--muted);display:block;margin-bottom:4px">🎥 VIDEO URL (YouTube embed)</label>
+        <input value="${esc(lesson.video||'')}" oninput="trackLessons[currentTrackId][${i}].video=this.value;videoMap[currentTrackId+':'+${i}]=this.value;localStorage.setItem('rfree_video_map',JSON.stringify(videoMap));markDirty()"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:0.82rem"
+          placeholder="https://youtube.com/embed/VIDEO_ID"/>
+      </div>
+      <div>
+        <label style="font-size:0.73rem;color:var(--muted);display:block;margin-bottom:6px">📌 BULLET POINTS</label>
+        ${(lesson.points||[]).map((pt,pi) => `
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input value="${esc(pt)}" oninput="trackLessons[currentTrackId][${i}].points[${pi}]=this.value;markDirty()"
+              style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.82rem"
+              placeholder="Bullet point…"/>
+            <button class="btn btn-danger" style="padding:5px 8px;font-size:0.75rem" onclick="deletePoint(${i},${pi})">✕</button>
+          </div>`).join('')}
+        <button class="btn btn-ghost" style="font-size:0.8rem;padding:5px 12px;margin-top:2px" onclick="addPoint(${i})">+ Bullet</button>
+      </div>
+    </div>`).join('') + `
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <span style="flex:1;font-size:0.8rem;color:var(--muted);display:flex;align-items:center">
+        💡 Save pushes to backend. Use Export to update index.html manually.
+      </span>
+      <button class="btn btn-ghost" onclick="exportTrackJSON()">⬇️ Export JSON</button>
+      <button class="btn btn-success" onclick="saveTrackToBackend()">💾 Save Track</button>
+    </div>`;
+}
+
+function addNewLesson() {
+  if (!trackLessons[currentTrackId]) trackLessons[currentTrackId] = [];
+  trackLessons[currentTrackId].push({ title:'New Lesson', points:[''], video:'' });
+  markDirty(); renderLessonsEditor();
+  setTimeout(() => { const c = document.querySelectorAll('[id^="lcard-"]'); if(c.length) c[c.length-1].scrollIntoView({behavior:'smooth'}); }, 100);
+}
+
+function deleteLesson(i) {
+  if (!confirm('Delete lesson ' + (i+1) + ': "' + trackLessons[currentTrackId][i].title + '"?')) return;
+  trackLessons[currentTrackId].splice(i, 1);
+  markDirty(); renderLessonsEditor();
+}
+
+function moveLessonUp(i) {
+  if (i===0) return;
+  const a=trackLessons[currentTrackId]; [a[i-1],a[i]]=[a[i],a[i-1]];
+  markDirty(); renderLessonsEditor();
+}
+
+function moveLessonDown(i) {
+  const a=trackLessons[currentTrackId]; if(i>=a.length-1) return;
+  [a[i],a[i+1]]=[a[i+1],a[i]];
+  markDirty(); renderLessonsEditor();
+}
+
+function addPoint(i) {
+  if (!trackLessons[currentTrackId][i].points) trackLessons[currentTrackId][i].points=[];
+  trackLessons[currentTrackId][i].points.push('');
+  markDirty(); renderLessonsEditor();
+}
+
+function deletePoint(i,pi) {
+  trackLessons[currentTrackId][i].points.splice(pi,1);
+  markDirty(); renderLessonsEditor();
+}
+
+async function saveTrackToBackend() {
+  const lessons = trackLessons[currentTrackId] || [];
+  const track = TRACK_LIST.find(t => t.id === currentTrackId);
+
+  // Try update first
+  let res = await api('/api/courses/' + currentTrackId, {
+    method:'PUT', body: JSON.stringify({ title:track.name, description:track.emoji+' Impact Track', data:lessons })
+  });
+
+  // If not found, create it
+  if (!res || res.error) {
+    res = await api('/api/courses', {
+      method:'POST', body: JSON.stringify({ id:currentTrackId, title:track.name, description:track.emoji+' Impact Track', data:lessons })
+    });
+  }
+
+  hasUnsaved = false;
+  alert('✅ ' + track.name + ' saved — ' + lessons.length + ' lessons.
+
+Use "Export JSON" to also update index.html → trackData.');
+}
+
+function exportTrackJSON() {
+  const lessons = trackLessons[currentTrackId] || [];
+  const track = TRACK_LIST.find(t => t.id === currentTrackId);
+  const json = "  " + currentTrackId + ": { name:'" + track.name + "', emoji:'" + track.emoji + "', color:'#6c63ff', capstoneRequired:true,\n    lessons:[\n" +
+    lessons.map(l => "      {title:'" + l.title.replace(/'/g,"\\'") + "', points:[" + (l.points||[]).map(p => "'" + p.replace(/'/g,"\\'") + "'").join(',') + "]}").join(",\n") +
+    "\n    ]},";
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `<div style="background:#1a1d27;border:1px solid #2e3348;border-radius:14px;padding:28px;width:680px;max-width:95vw;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="color:#e2e5f1;font-size:1rem">📋 Paste into index.html → trackData (~line 4268)</h3>
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:#7b82a0;cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <p style="color:#7b82a0;font-size:0.8rem;margin-bottom:10px">Find the <code style="background:#0f1117;padding:1px 5px;border-radius:4px;color:#6c63ff">${currentTrackId}:</code> block in trackData and replace it entirely with this:</p>
+    <textarea id="export-ta" style="width:100%;height:260px;background:#0f1117;border:1px solid #2e3348;border-radius:8px;padding:12px;color:#a89ff5;font-family:monospace;font-size:0.78rem;resize:vertical">${json}</textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="navigator.clipboard.writeText(document.getElementById('export-ta').value).then(()=>this.textContent='✅ Copied!')" style="background:#6c63ff;color:#fff;border:none;padding:9px 18px;border-radius:8px;cursor:pointer;font-weight:600">📋 Copy</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
 </script>
 </body>
 </html>
