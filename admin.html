@@ -174,13 +174,9 @@
       const user = await res.json();
       console.log('User data:', user);
 
-      if (!user || user.role !== 'admin') {
-  console.log('User is not admin. Role:', user?.role);
-  redirect();
-  return;
+    if (d.role !== 'admin' && !d.isAdmin) {
+  throw new Error('Admin access only');
 }
-
-console.log('✅ Admin access granted');
 
     } catch(e) {
       console.error('Admin check error:', e);
