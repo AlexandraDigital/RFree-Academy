@@ -21,10 +21,21 @@
 <div id="output"></div>
 
 <script>
-const token = localStorage.getItem("token");
+const API_BASE_STORAGE_KEY = "rfree_api_base";
+const token = localStorage.getItem("rfree_token");
+
+function normalizeApiBase(value = "") {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function apiUrl(path) {
+  const params = new URLSearchParams(window.location.search);
+  const base = normalizeApiBase(params.get("api") || localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  return base ? `${base}${path}` : path;
+}
 
 async function createCourse() {
-  const res = await fetch("/api/courses/create", {
+  const res = await fetch(apiUrl("/api/courses"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -33,6 +44,7 @@ async function createCourse() {
     body: JSON.stringify({
       id: courseId.value,
       title: title.value,
+      description: "",
       data: lessons.value.split(",")
     })
   });

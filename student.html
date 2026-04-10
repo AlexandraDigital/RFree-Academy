@@ -15,16 +15,27 @@
 <h3>XP: <span id="xp">0</span></h3>
 
 <script>
-const token = localStorage.getItem("token");
+const API_BASE_STORAGE_KEY = "rfree_api_base";
+const token = localStorage.getItem("rfree_token");
+
+function normalizeApiBase(value = "") {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function apiUrl(path) {
+  const params = new URLSearchParams(window.location.search);
+  const base = normalizeApiBase(params.get("api") || localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  return base ? `${base}${path}` : path;
+}
 
 async function load() {
-  const res = await fetch("/api/progress/load", {
+  const res = await fetch(apiUrl("/api/progress"), {
     headers: { "Authorization": "Bearer " + token }
   });
 
   const data = await res.json();
 
-  const completed = data.progress.filter(p => p.completed).length;
+  const completed = (Array.isArray(data) ? data : []).filter((p) => p.completed).length;
   const total = 10; // or dynamic later
 
   const percent = (completed / total) * 100;

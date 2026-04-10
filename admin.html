@@ -54,6 +54,7 @@
     .toggle-btn.is-undone { background:rgba(168,85,247,0.1); color:#a78bfa; border:1px solid rgba(168,85,247,0.2); }
     .toggle-btn:hover { opacity:0.8; }
     .modal-loading { text-align:center; padding:2rem; color:#a78bfa; font-size:0.9rem; }
+    .api-input { min-width: 280px; flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(168,85,247,0.3); background: rgba(45,20,84,0.45); color: #fff; }
   </style>
 </head>
 <body>
@@ -64,6 +65,8 @@
 </div>
 
 <div class="action-row">
+  <input id="apiBaseUrl" class="api-input" placeholder="Backend API URL (e.g. https://your-worker.workers.dev)" />
+  <button class="btn btn-load" onclick="saveApiBase()">Save API URL</button>
   <button class="btn btn-load" onclick="loadStats()">📊 Refresh Stats</button>
   <button class="btn btn-load" onclick="loadUsers()">👤 Refresh Users</button>
 </div>
@@ -95,6 +98,34 @@
 
 <script>
   const TOKEN = localStorage.getItem('rfree_token');
+  const API_BASE_STORAGE_KEY = 'rfree_api_base';
+
+  function normalizeApiBase(value = '') {
+    return value.trim().replace(/\/+$/, '');
+  }
+
+  function getApiBase() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeApiBase(params.get('api') || localStorage.getItem(API_BASE_STORAGE_KEY) || '');
+  }
+
+  function apiUrl(path) {
+    const base = getApiBase();
+    return base ? `${base}${path}` : path;
+  }
+
+  function primeApiBaseInput() {
+    const input = document.getElementById('apiBaseUrl');
+    if (input) input.value = getApiBase();
+  }
+
+  function saveApiBase() {
+    const input = document.getElementById('apiBaseUrl');
+    const value = normalizeApiBase(input?.value || '');
+    if (value) localStorage.setItem(API_BASE_STORAGE_KEY, value);
+    else localStorage.removeItem(API_BASE_STORAGE_KEY);
+    primeApiBaseInput();
+  }
 
   // ── TRACK DATA (lesson titles only) ──────────────────────────────
   const TRACKS = {
@@ -128,7 +159,7 @@
     }
 
     try {
-      const res = await fetch('/api/me', {
+      const res = await fetch(apiUrl('/api/me'), {
         headers: { 'Authorization': 'Bearer ' + TOKEN }
       });
 
@@ -167,7 +198,7 @@ console.log('✅ Admin access granted');
   // ── STATS ─────────────────────────────────────────────────────────
   async function loadStats() {
     try {
-      const res = await fetch('/api/admin/stats', {
+      const res = await fetch(apiUrl('/api/admin/stats'), {
         headers: { 'Authorization': 'Bearer ' + TOKEN }
       });
       
@@ -191,7 +222,7 @@ console.log('✅ Admin access granted');
     const container = document.getElementById('users');
     container.innerHTML = '<div class="empty-msg">Loading...</div>';
     try {
-      const res = await fetch('/api/admin/users', {
+      const res = await fetch(apiUrl('/api/admin/users'), {
         headers: { 'Authorization': 'Bearer ' + TOKEN }
       });
 
@@ -242,7 +273,7 @@ console.log('✅ Admin access granted');
     document.getElementById('progressModal').classList.add('open');
 
     try {
-      const res = await fetch('/api/admin/user-progress?userId=' + userId, {
+      const res = await fetch(apiUrl('/api/admin/user-progress?userId=' + userId), {
         headers: { 'Authorization': 'Bearer ' + TOKEN }
       });
 
@@ -299,7 +330,7 @@ console.log('✅ Admin access granted');
     renderProgressModal();
 
     try {
-      const res = await fetch('/api/admin/user-progress', {
+      const res = await fetch(apiUrl('/api/admin/user-progress'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
         body: JSON.stringify({ userId: id, trackId, lessonIndex: index, completed: !isDone })
@@ -326,7 +357,7 @@ console.log('✅ Admin access granted');
   // ── CHANGE ROLE ───────────────────────────────────────────────────
   async function changeRole(userId, role) {
     try {
-      const res = await fetch('/api/admin/user-role', {
+      const res = await fetch(apiUrl('/api/admin/user-role'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
         body: JSON.stringify({ userId, role })
@@ -346,7 +377,7 @@ console.log('✅ Admin access granted');
   async function deleteUser(userId) {
     if (!confirm('Delete this user? This cannot be undone.')) return;
     try {
-      const res = await fetch('/api/admin/user-delete', {
+      const res = await fetch(apiUrl('/api/admin/user-delete'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
         body: JSON.stringify({ userId })
@@ -364,6 +395,7 @@ console.log('✅ Admin access granted');
 
   // ── INIT ──────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async () => {
+    primeApiBaseInput();
     await checkAdmin();
     loadStats();
     loadUsers();

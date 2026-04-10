@@ -2570,6 +2570,12 @@ nav {
       <input id="password" class="form-input" type="password" placeholder="••••••••" />
     </div>
 
+    <div class="form-group">
+      <label class="form-label">Backend API URL</label>
+      <input id="apiBaseUrl" class="form-input" type="url" placeholder="https://your-worker.workers.dev" />
+      <div class="text-muted mt-1" style="font-size:0.78rem">Use this when your frontend is on Pages and your backend is a separate Worker.</div>
+    </div>
+
     <button class="btn btn-primary w-full btn-lg" onclick="createAccount()">Create Free Account</button>
 
     <div class="divider"></div>
@@ -2678,6 +2684,41 @@ const state = {
   recordedChunks: [],
   selectedDonation: '$5',
 };
+
+const API_BASE_STORAGE_KEY = 'rfree_api_base';
+
+function normalizeApiBase(value = '') {
+  return value.trim().replace(/\/+$/, '');
+}
+
+function getConfiguredApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  const queryValue = normalizeApiBase(params.get('api') || '');
+  const storedValue = normalizeApiBase(localStorage.getItem(API_BASE_STORAGE_KEY) || '');
+  return queryValue || storedValue;
+}
+
+function apiUrl(path) {
+  const base = getConfiguredApiBase();
+  return base ? `${base}${path}` : path;
+}
+
+function saveApiBasePreference() {
+  const input = document.getElementById('apiBaseUrl');
+  if (!input) return;
+
+  const value = normalizeApiBase(input.value);
+  if (value) localStorage.setItem(API_BASE_STORAGE_KEY, value);
+  else localStorage.removeItem(API_BASE_STORAGE_KEY);
+}
+
+function primeApiBaseInput() {
+  const input = document.getElementById('apiBaseUrl');
+  if (!input) return;
+  input.value = getConfiguredApiBase();
+}
+
+primeApiBaseInput();
 
 // ─────────────────────────── NAVIGATION ───────────────────────────
 function showPage(id) {
@@ -4850,7 +4891,9 @@ async function signIn() {
   }
 
   try {
-    const res = await fetch('/api/login', {
+    saveApiBasePreference();
+
+    const res = await fetch(apiUrl('/api/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -4903,7 +4946,9 @@ async function createAccount() {
   if (!email) { showToast('Please enter your email!', 'error'); return; }
   if (!password || password.length < 6) { showToast('Password must be at least 6 characters!', 'error'); return; }
   try {
-    const res = await fetch('/api/register', {
+    saveApiBasePreference();
+
+    const res = await fetch(apiUrl('/api/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -5095,11 +5140,11 @@ async function completeLesson() {
     return;
   }
 
-  await fetch("/api/progress/save", {
+  await fetch(apiUrl("/api/progress/save"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + localStorage.getItem("token")
+      "Authorization": "Bearer " + localStorage.getItem("rfree_token")
     },
     body: JSON.stringify({
       lessonId: currentLesson.id,

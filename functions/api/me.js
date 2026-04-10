@@ -1,21 +1,18 @@
+import { corsHeaders, getUserFromRequest } from "../_lib/auth.js";
+
 export async function onRequestGet({ request, env }) {
-  const auth = request.headers.get("Authorization");
-
-  if (!auth) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const token = auth.split(" ")[1];
-
-  const user = await verifyToken(token, env);
+  const user = await getUserFromRequest(request, env);
 
   if (!user) {
-    return Response.json({ error: "Invalid token" }, { status: 401 });
+    return Response.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
   }
 
-  const fullUser = await env.DB.prepare(
-    "SELECT id, email, role FROM users WHERE id = ?"
-  ).bind(user.id).first();
+  return Response.json(
+    { id: user.id, email: user.email, role: user.role, created_at: user.created_at },
+    { headers: corsHeaders }
+  );
+}
 
-  return Response.json(fullUser);
+export async function onRequestOptions() {
+  return new Response(null, { headers: corsHeaders });
 }
