@@ -60,10 +60,6 @@
 
 <div class="top-bar">
   <h1>👑 Admin Panel</h1>
-   <button id="adminButton" style="display:none;">
-      Admin Panel
-    </button>
-  </button>
   <a href="index.html" class="btn btn-back">← Back to Academy</a>
 </div>
 
@@ -155,7 +151,6 @@
 
 console.log('✅ Admin access granted');
 
-document.getElementById("adminButton").style.display = "block";
     } catch(e) {
       console.error('Admin check error:', e);
       redirect();

@@ -1368,8 +1368,9 @@ nav {
   <div class="nav-actions">
     <a id="lessonMgrBtn" href="./lesson-manager/" target="_blank" class="btn btn-ghost btn-sm" style="display:none;gap:0.5rem;text-decoration:none">🗂️ Lesson Manager</a>
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲 Install</button>
-    <button class="btn btn-ghost" onclick="showModal('loginModal')">Sign In</button>
-    <button class="btn btn-primary" onclick="showModal('loginModal')">Join Free</button>
+    <button class="btn btn-ghost" id="signInBtn" onclick="showModal('loginModal')">Sign In</button>
+    <button class="btn btn-primary" id="joinBtn" onclick="showModal('loginModal')">Join Free</button>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="logout()" style="display:none">🚪 Log Out</button>
   </div>
 </nav>
 <!-- TOAST CONTAINER -->
@@ -2628,7 +2629,10 @@ nav {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 
-if (isAdmin) { document.addEventListener('DOMContentLoaded', () => { const btn = document.getElementById('lessonMgrBtn'); if(btn) btn.style.display = 'flex'; }); }
+// ─── ADMIN CHECK ───
+function isAdmin() { return localStorage.getItem('rfree_role') === 'admin' && localStorage.getItem('rfree_logged_in') === '1'; }
+
+if (isAdmin()) { document.addEventListener('DOMContentLoaded', () => { const btn = document.getElementById('lessonMgrBtn'); if(btn) btn.style.display = 'flex'; }); }
 
 // ─── ADMIN BUTTON HELPER ───
 function showAdminButton() {
@@ -2650,7 +2654,11 @@ function showAdminButton() {
   const loggedIn = localStorage.getItem('rfree_logged_in') === '1';
   const role = localStorage.getItem('rfree_role');
   if(loggedIn && role === 'admin') {
-    document.addEventListener('DOMContentLoaded', showAdminButton);
+    showAdminButton();
+  }
+  if(loggedIn) {
+    const lb = document.getElementById('logoutBtn');
+    if(lb) lb.style.display = 'inline-flex';
   }
 })();
 const state = {
@@ -4486,7 +4494,7 @@ const libraryLesson = state.lessons.find(l =>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem">
       <span style="font-size:1.5rem">${track.emoji}</span>
       <div style="font-size:0.72rem;color:var(--purple-400);text-transform:uppercase;letter-spacing:1px">Lesson ${index+1} of ${track.lessons.length}</div>
-      ${isAdmin && githubUrl ? `<a href="${githubUrl}" target="_blank" rel="noopener" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--purple-300);text-decoration:none;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);padding:3px 10px;border-radius:100px;transition:all 0.2s" onmouseover="this.style.color='white';this.style.borderColor='rgba(168,85,247,0.6)'" onmouseout="this.style.color='var(--purple-300)';this.style.borderColor='rgba(168,85,247,0.3)'">📄 View on GitHub</a>` : ''}
+      ${isAdmin() && githubUrl ? `<a href="${githubUrl}" target="_blank" rel="noopener" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--purple-300);text-decoration:none;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);padding:3px 10px;border-radius:100px;transition:all 0.2s" onmouseover="this.style.color='white';this.style.borderColor='rgba(168,85,247,0.6)'" onmouseout="this.style.color='var(--purple-300)';this.style.borderColor='rgba(168,85,247,0.3)'">📄 View on GitHub</a>` : ''}
     </div>
     <h2 style="font-family:'Arial Black',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:1rem;line-height:1.3">${lesson.title}</h2>
 
@@ -4875,6 +4883,8 @@ async function signIn() {
 
     } else {
       showToast('👋 Welcome back!', 'success');
+      const lb = document.getElementById('logoutBtn');
+      if(lb) lb.style.display = 'inline-flex';
     }
 
   } catch (e) {
@@ -4882,6 +4892,50 @@ async function signIn() {
   }
 }
 
+
+// ─────────────────────────── CREATE ACCOUNT ───────────────────────────
+async function createAccount() {
+  const modal = document.getElementById('loginModal');
+  const emailEl = modal.querySelector('input[type="email"]');
+  const passEl  = modal.querySelector('input[type="password"]');
+  const email = emailEl?.value.trim();
+  const password = passEl?.value;
+  if (!email) { showToast('Please enter your email!', 'error'); return; }
+  if (!password || password.length < 6) { showToast('Password must be at least 6 characters!', 'error'); return; }
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      showToast('❌ ' + (data.error || 'Registration failed. Please try again.'), 'error');
+      return;
+    }
+    localStorage.setItem('rfree_token', data.token);
+    localStorage.setItem('rfree_role', data.role || 'user');
+    localStorage.setItem('rfree_userId', data.userId);
+    localStorage.setItem('rfree_email', email);
+    localStorage.setItem('rfree_logged_in', '1');
+    closeModal('loginModal');
+    showToast('🎉 Welcome to RFree Academy! Account created.', 'success');
+    const lb = document.getElementById('logoutBtn');
+    if(lb) lb.style.display = 'inline-flex';
+  } catch (e) {
+    showToast('❌ Could not connect to server.', 'error');
+  }
+}
+
+// ─────────────────────────── LOGOUT ───────────────────────────
+function logout() {
+  ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email'].forEach(k => localStorage.removeItem(k));
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if(adminBtn) adminBtn.remove();
+  const lb = document.getElementById('logoutBtn');
+  if(lb) lb.style.display = 'none';
+  showToast('👋 Logged out. See you soon!', 'success');
+}
 
 // ─────────────────────────── PWA INSTALL ───────────────────────────
 let deferredPrompt;
