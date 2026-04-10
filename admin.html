@@ -21,17 +21,92 @@
 <div id="users"></div>
 
 <script>
-const token = localStorage.getItem("token");
+let isLoginMode = false;
 
-// 👤 LOAD USERS
+// ======================
+// SWITCH TO LOGIN MODE
+// ======================
+function switchToLogin() {
+  isLoginMode = true;
+
+  document.getElementById("title").innerText = "Welcome Back";
+  document.getElementById("desc").innerText = "Sign in to continue learning";
+  document.getElementById("mainBtn").innerText = "Sign In";
+}
+
+// ======================
+// SIGNUP + LOGIN HANDLER
+// ======================
+async function handleAuth() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    alert("Fill all fields");
+    return;
+  }
+
+  if (isLoginMode) {
+    // LOGIN
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Login failed");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("userId", data.userId);
+
+    if (data.role === "admin") {
+      window.location.href = "admin.html";
+    } else {
+      window.location.href = "dashboard.html";
+    }
+
+  } else {
+    // REGISTER
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Signup failed");
+      return;
+    }
+
+    alert("Account created! Click Sign In Instead.");
+    switchToLogin();
+  }
+}
+
+// ======================
+// ADMIN: LOAD USERS
+// ======================
 async function loadUsers() {
   const res = await fetch("/api/admin/users", {
     headers: {
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + localStorage.getItem("token")
     }
   });
 
   const data = await res.json();
+
+  if (!Array.isArray(data)) {
+    console.error("Failed to load users:", data);
+    return;
+  }
 
   document.getElementById("users").innerHTML =
     data.map(u => `
@@ -47,13 +122,15 @@ async function loadUsers() {
     `).join("");
 }
 
-// 🔁 CHANGE ROLE
+// ======================
+// CHANGE ROLE
+// ======================
 async function changeRole(userId, role) {
   await fetch("/api/admin/role", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({ userId, role })
   });
@@ -61,13 +138,15 @@ async function changeRole(userId, role) {
   loadUsers();
 }
 
-// 🗑️ DELETE USER
+// ======================
+// DELETE USER
+// ======================
 async function deleteUser(userId) {
   await fetch("/api/admin/delete-user", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({ userId })
   });
@@ -75,11 +154,13 @@ async function deleteUser(userId) {
   loadUsers();
 }
 
-// 📊 LOAD STATS
+// ======================
+// LOAD STATS
+// ======================
 async function loadStats() {
   const res = await fetch("/api/admin/stats", {
     headers: {
-      "Authorization": "Bearer " + token
+      "Authorization": "Bearer " + localStorage.getItem("token")
     }
   });
 
