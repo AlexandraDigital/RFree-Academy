@@ -1,56 +1,334 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Student Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — RFREE Academy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: #1a0a2e; 
+      color: #fff; 
+      min-height: 100vh; 
+      padding: 2rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.8rem; color: #f59e0b; }
+    .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-back { background: rgba(168,85,247,0.2); color: #c084fc; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #7c3aed; color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(168,85,247,0.2); }
+    .tab-btn { 
+      background: none; border: none; color: #c084fc; padding: 0.75rem 1rem; 
+      cursor: pointer; font-size: 0.95rem; border-bottom: 2px solid transparent; 
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card { background: rgba(45,20,84,0.5); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
+    .card-header { font-size: 1.1rem; font-weight: 600; color: #c084fc; margin-bottom: 1rem; }
+    .lesson-card { background: rgba(45,20,84,0.5); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+    .lesson-title { font-size: 1rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.5rem; }
+    .lesson-meta { font-size: 0.85rem; color: #a78bfa; margin-bottom: 0.75rem; }
+    .lesson-actions { display: flex; gap: 0.5rem; }
+
+    .student-row { background: rgba(45,20,84,0.4); border: 1px solid rgba(168,85,247,0.15); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .student-row:hover { background: rgba(45,20,84,0.6); border-color: rgba(168,85,247,0.3); }
+    .student-name { font-weight: 600; color: #f59e0b; }
+    .student-email { font-size: 0.85rem; color: #a78bfa; }
+    .student-progress { font-size: 0.8rem; color: #6ee7b7; margin-top: 0.5rem; }
+
+    .progress-view { display: none; }
+    .progress-view.open { display: block; }
+    .progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .close-btn { background: none; border: none; color: #c084fc; font-size: 1.5rem; cursor: pointer; }
+    
+    .lesson-progress-item { background: rgba(45,20,84,0.4); border: 1px solid rgba(168,85,247,0.15); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .lesson-progress-header { display: flex; align-items: center; justify-content: space-between; }
+    .lesson-progress-title { font-weight: 600; color: #c084fc; }
+    .completion-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    .completion-badge.complete { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+    .completion-badge.incomplete { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    
+    .mark-complete-btn { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .mark-complete-btn:hover { opacity: 0.85; }
+
+    .empty-msg { color: #a1a1aa; font-size: 0.9rem; padding: 2rem 0; text-align: center; }
+    .error-msg { color: #fca5a5; padding: 1rem; background: rgba(239,68,68,0.1); border-radius: 8px; margin-bottom: 1rem; }
+    .success-msg { color: #6ee7b7; padding: 1rem; background: rgba(16,185,129,0.1); border-radius: 8px; margin-bottom: 1rem; }
+  </style>
 </head>
+<body>
 
-<h1>👨‍🏫 Teacher Dashboard</h1>
+<div class="container">
+  <div class="header">
+    <h1>📚 Teacher Dashboard</h1>
+    <a href="index.html" class="btn btn-back">← Back to Academy</a>
+  </div>
 
-<h3>Create Course</h3>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('my-lessons')">📹 My Lessons</button>
+    <button class="tab-btn" onclick="switchTab('my-students')">👥 My Students</button>
+  </div>
 
-<input id="courseId" placeholder="Course ID">
-<input id="title" placeholder="Course Title">
+  <!-- Tab 1: My Lessons -->
+  <div id="my-lessons" class="tab-content active">
+    <div class="card">
+      <div class="card-header">Videos You Created</div>
+      <div id="lessonsContainer">
+        <div class="empty-msg">Loading your lessons...</div>
+      </div>
+    </div>
+  </div>
 
-<textarea id="lessons" placeholder="Lessons (comma separated)"></textarea>
+  <!-- Tab 2: My Students -->
+  <div id="my-students" class="tab-content">
+    <div class="card">
+      <div class="card-header">Your Students</div>
+      <div id="studentsContainer">
+        <div class="empty-msg">Loading your students...</div>
+      </div>
+    </div>
+  </div>
 
-<button onclick="createCourse()">Create Course</button>
+  <!-- Progress Detail View (Modal) -->
+  <div id="progressView" class="progress-view">
+    <div style="background: rgba(45,20,84,0.8); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 2rem; max-width: 600px;">
+      <div class="progress-header">
+        <div>
+          <h2 style="font-size: 1.2rem; color: #f59e0b; margin-bottom: 0.25rem;" id="progressStudentName"></h2>
+          <p style="font-size: 0.9rem; color: #a78bfa;" id="progressStudentEmail"></p>
+        </div>
+        <button class="close-btn" onclick="closeProgressView()">✕</button>
+      </div>
+      <div id="progressItemsContainer"></div>
+    </div>
+  </div>
 
-<hr>
-
-<div id="output"></div>
+</div>
 
 <script>
-const API_BASE_STORAGE_KEY = "rfree_api_base";
-const token = localStorage.getItem("rfree_token");
+  const TOKEN = localStorage.getItem('rfree_token');
+  const API_BASE_STORAGE_KEY = 'rfree_api_base';
 
-function normalizeApiBase(value = "") {
-  return value.trim().replace(/\/+$/, "");
-}
+  // ── CHECK TEACHER ACCESS ──
+  async function checkTeacher() {
+    if (!TOKEN) {
+      window.location.href = 'index.html';
+      return;
+    }
 
-function apiUrl(path) {
-  const params = new URLSearchParams(window.location.search);
-  const base = normalizeApiBase(params.get("api") || localStorage.getItem(API_BASE_STORAGE_KEY) || "");
-  return base ? `${base}${path}` : path;
-}
+    try {
+      const res = await fetch(apiUrl('/api/me'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
 
-async function createCourse() {
-  const res = await fetch(apiUrl("/api/courses"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify({
-      id: courseId.value,
-      title: title.value,
-      description: "",
-      data: lessons.value.split(",")
-    })
-  });
+      if (!res.ok) {
+        window.location.href = 'index.html';
+        return;
+      }
 
-  const data = await res.json();
-  document.getElementById("output").innerText =
-    JSON.stringify(data, null, 2);
-}
+      const user = await res.json();
+      if (user.role !== 'teacher') {
+        alert('Teacher access only');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      loadMyLessons();
+      loadMyStudents();
+
+    } catch(e) {
+      console.error('Teacher check error:', e);
+      window.location.href = 'index.html';
+    }
+  }
+
+  // ── API HELPER ──
+  function apiUrl(path) {
+    const base = localStorage.getItem(API_BASE_STORAGE_KEY) || 'https://rfree-academy.pages.dev';
+    return base + path;
+  }
+
+  // ── LOAD MY LESSONS ──
+  async function loadMyLessons() {
+    try {
+      const res = await fetch(apiUrl('/api/teacher/my-lessons'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      if (!res.ok) throw new Error('Failed to load lessons');
+
+      // Get lessons from localStorage where teacher = current user
+      const allLessons = JSON.parse(localStorage.getItem('rfree_lessons') || '[]');
+      const displayName = localStorage.getItem('rfree_display_name') || 'You';
+      const myLessons = allLessons.filter(l => (l.teacher || 'You') === displayName);
+
+      const container = document.getElementById('lessonsContainer');
+
+      if (myLessons.length === 0) {
+        container.innerHTML = '<div class="empty-msg">You haven\'t created any lessons yet. Create one from the main Academy page!</div>';
+        return;
+      }
+
+      container.innerHTML = myLessons.map(lesson => `
+        <div class="lesson-card">
+          <div class="lesson-title">${lesson.title || 'Untitled'}</div>
+          <div class="lesson-meta">
+            <div>📁 ${lesson.subject || 'General'}</div>
+            <div style="margin-top: 0.5rem;">⏱️ ${lesson.duration || 'N/A'}</div>
+          </div>
+          <div class="lesson-actions">
+            ${lesson.videoUrl ? `<a href="${lesson.videoUrl}" class="btn btn-sm btn-primary" target="_blank">▶️ Watch</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      console.error('Load lessons error:', e);
+      document.getElementById('lessonsContainer').innerHTML = `<div class="error-msg">Error loading lessons: ${e.message}</div>`;
+    }
+  }
+
+  // ── LOAD MY STUDENTS ──
+  async function loadMyStudents() {
+    try {
+      const res = await fetch(apiUrl('/api/teacher/my-students'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      if (!res.ok) throw new Error('Failed to load students');
+
+      const data = await res.json();
+      const container = document.getElementById('studentsContainer');
+
+      if (!data.students || data.students.length === 0) {
+        container.innerHTML = '<div class="empty-msg">No students yet. Once students take your lessons, they\'ll appear here.</div>';
+        return;
+      }
+
+      container.innerHTML = data.students.map(student => `
+        <div class="student-row" onclick="viewStudentProgress('${student.id}', '${student.display_name || student.email}', '${student.email}')">
+          <div class="student-name">${student.display_name || student.email}</div>
+          <div class="student-email">${student.email}</div>
+          <div class="student-progress">📊 Lessons taken: ${student.lessons_taken || 0}</div>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      console.error('Load students error:', e);
+      document.getElementById('studentsContainer').innerHTML = `<div class="error-msg">Error loading students: ${e.message}</div>`;
+    }
+  }
+
+  // ── VIEW STUDENT PROGRESS ──
+  async function viewStudentProgress(studentId, studentName, studentEmail) {
+    try {
+      const res = await fetch(apiUrl(`/api/teacher/student-progress?studentId=${studentId}`), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      if (!res.ok) throw new Error('Failed to load progress');
+
+      const data = await res.json();
+      const allLessons = JSON.parse(localStorage.getItem('rfree_lessons') || '[]');
+
+      document.getElementById('progressStudentName').textContent = studentName;
+      document.getElementById('progressStudentEmail').textContent = studentEmail;
+
+      const progressMap = {};
+      data.progress.forEach(p => {
+        progressMap[p.lesson_id] = p.completed;
+      });
+
+      const progressItems = allLessons.map(lesson => {
+        const completed = progressMap[lesson.id] === 1;
+        return `
+          <div class="lesson-progress-item">
+            <div class="lesson-progress-header">
+              <div>
+                <div class="lesson-progress-title">${lesson.title}</div>
+                <div style="font-size: 0.8rem; color: #a78bfa; margin-top: 0.25rem;">${lesson.subject || 'General'}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="completion-badge ${completed ? 'complete' : 'incomplete'}">
+                  ${completed ? '✓ Complete' : '○ Incomplete'}
+                </span>
+                <button class="mark-complete-btn" onclick="markStudentComplete('${studentId}', '${lesson.id}', ${!completed})">
+                  ${completed ? '↩️ Reset' : '✓ Mark'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('progressItemsContainer').innerHTML = progressItems || '<div class="empty-msg">No lessons to track yet.</div>';
+      document.getElementById('progressView').classList.add('open');
+
+    } catch(e) {
+      console.error('View progress error:', e);
+      alert('Error loading student progress: ' + e.message);
+    }
+  }
+
+  // ── MARK STUDENT COMPLETE ──
+  async function markStudentComplete(studentId, lessonId, completed) {
+    try {
+      const res = await fetch(apiUrl('/api/teacher/student-progress'), {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + TOKEN 
+        },
+        body: JSON.stringify({ studentId, lessonId, completed })
+      });
+
+      if (!res.ok) throw new Error('Failed to update progress');
+
+      // Reload the progress view
+      const studentId2 = document.getElementById('progressStudentEmail').textContent;
+      const studentName = document.getElementById('progressStudentName').textContent;
+      
+      const allStudents = document.querySelectorAll('.student-row');
+      for (let row of allStudents) {
+        if (row.querySelector('.student-email').textContent === studentId2) {
+          viewStudentProgress(studentId, studentName, studentId2);
+          break;
+        }
+      }
+
+    } catch(e) {
+      console.error('Mark complete error:', e);
+      alert('Error updating progress: ' + e.message);
+    }
+  }
+
+  // ── CLOSE PROGRESS VIEW ──
+  function closeProgressView() {
+    document.getElementById('progressView').classList.remove('open');
+  }
+
+  // ── SWITCH TABS ──
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // ── INIT ──
+  document.addEventListener('DOMContentLoaded', checkTeacher);
 </script>
+
+</body>
+</html>
