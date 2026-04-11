@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFREE Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1a0a2e; color: #fff; min-height: 100vh; padding: 2rem; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.8rem; color: #f59e0b; }
+    .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-back     { background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); text-decoration: none; display: inline-block; }
+    .btn-load     { background: #7c3aed; color: #fff; }
+    .btn-role     { background: rgba(56,189,248,0.15); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .btn-role.admin-btn { background: rgba(245,158,11,0.15); color: #fde68a; border-color: rgba(245,158,11,0.4); }
+    .btn-role.active { opacity: 1; font-weight: 700; border-width: 2px; box-shadow: 0 0 8px currentColor; }
+    .btn-delete   { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .btn-progress { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; padding: 4px 10px; }
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 2rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(45,20,84,0.6); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-card .num { font-size: 2rem; font-weight: 800; color: #f59e0b; }
+    .stat-card .lbl { font-size: 0.8rem; color: #c084fc; margin-top: 4px; }
+    h2 { font-size: 1.1rem; color: #c084fc; margin-bottom: 1rem; }
+    .user-card { background: rgba(45,20,84,0.5); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .user-info { display: flex; flex-direction: column; gap: 3px; }
+    .user-email { font-weight: 600; font-size: 0.95rem; }
+    .user-role-badge { display: inline-block; font-size: 0.72rem; padding: 2px 10px; border-radius: 100px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .role-admin   { background: rgba(245,158,11,0.2);  color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
+    .role-teacher { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .role-student { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+    .user-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty-msg { color: #a1a1aa; font-size: 0.9rem; padding: 1rem 0; }
+    .error-msg  { color: #fca5a5; font-size: 0.9rem; padding: 1rem 0; }
+
+    /* Progress Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:#1a0a2e; border:1px solid rgba(168,85,247,0.35); border-radius:16px; width:100%; max-width:640px; padding:1.5rem; margin:auto; }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+    .modal-title { font-size:1.05rem; font-weight:700; color:#f59e0b; }
+    .modal-subtitle { font-size:0.8rem; color:#a78bfa; margin-top:2px; }
+    .modal-close-btn { background:none; border:none; color:#c084fc; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px; }
+    .track-block { margin-bottom:1rem; border:1px solid rgba(168,85,247,0.15); border-radius:10px; overflow:hidden; }
+    .track-header { background:rgba(45,20,84,0.8); padding:0.6rem 1rem; display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:700; color:#c084fc; }
+    .track-progress-badge { margin-left:auto; font-size:0.72rem; color:#a78bfa; font-weight:400; }
+    .lesson-row { display:flex; align-items:center; gap:10px; padding:0.5rem 1rem; border-top:1px solid rgba(168,85,247,0.08); font-size:0.82rem; color:#e2e8f0; }
+    .lesson-row:hover { background:rgba(168,85,247,0.05); }
+    .lesson-num { color:#a78bfa; font-size:0.73rem; flex-shrink:0; width:20px; }
+    .lesson-title-text { flex:1; line-height:1.35; }
+    .toggle-btn { flex-shrink:0; padding:3px 12px; border-radius:100px; cursor:pointer; font-size:0.73rem; font-weight:600; transition:all 0.2s; border: none; background: none; }
+    .toggle-btn.is-done   { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid rgba(16,185,129,0.4); }
+    .toggle-btn.is-undone { background:rgba(168,85,247,0.1); color:#a78bfa; border:1px solid rgba(168,85,247,0.2); }
+    .toggle-btn:hover { opacity:0.8; }
+    .modal-loading { text-align:center; padding:2rem; color:#a78bfa; font-size:0.9rem; }
+    .api-input { min-width: 280px; flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(168,85,247,0.3); background: rgba(45,20,84,0.45); color: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>👑 Admin Panel</h1>
+  <a href="index.html" class="btn btn-back">← Back to Academy</a>
+</div>
+
+<div class="action-row">
+  <input id="apiBaseUrl" class="api-input" placeholder="Backend API URL (e.g. https://your-worker.workers.dev)" />
+  <button class="btn btn-load" onclick="saveApiBase()">Save API URL</button>
+  <button class="btn btn-load" onclick="loadStats()">📊 Refresh Stats</button>
+  <button class="btn btn-load" onclick="loadUsers()">👤 Refresh Users</button>
+</div>
+
+<h2>📊 Stats</h2>
+<div class="stats-grid">
+  <div class="stat-card"><div class="num" id="statUsers">—</div><div class="lbl">Total Users</div></div>
+  <div class="stat-card"><div class="num" id="statLessons">—</div><div class="lbl">Completed Lessons</div></div>
+  <div class="stat-card"><div class="num" id="statAdmins">—</div><div class="lbl">Admins</div></div>
+  <div class="stat-card"><div class="num" id="statTeachers">—</div><div class="lbl">Teachers</div></div>
+</div>
+
+<h2>👤 Users</h2>
+<div id="users"><div class="empty-msg">Loading...</div></div>
+
+<!-- Progress Manager Modal -->
+<div class="modal-overlay" id="progressModal" onclick="closeProgressModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="progressModalTitle">Student Progress</div>
+        <div class="modal-subtitle" id="progressModalEmail"></div>
+      </div>
+      <button class="modal-close-btn" onclick="closeProgressModal()">✕</button>
+    </div>
+    <div id="progressModalBody"><div class="modal-loading">Loading progress...</div></div>
+  </div>
+</div>
+
+<script>
+  const TOKEN = localStorage.getItem('rfree_token');
+  const API_BASE_STORAGE_KEY = 'rfree_api_base';
+
+  function normalizeApiBase(value = '') {
+    return value.trim().replace(/\/+$/, '');
+  }
+
+  function getApiBase() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeApiBase(params.get('api') || localStorage.getItem(API_BASE_STORAGE_KEY) || 'https://rfree-academy.pages.dev');
+  }
+
+  function apiUrl(path) {
+    const base = getApiBase();
+    return base ? `${base}${path}` : path;
+  }
+
+  function primeApiBaseInput() {
+    const input = document.getElementById('apiBaseUrl');
+    if (input) input.value = getApiBase();
+  }
+
+  function saveApiBase() {
+    const input = document.getElementById('apiBaseUrl');
+    const value = normalizeApiBase(input?.value || '');
+    if (value) localStorage.setItem(API_BASE_STORAGE_KEY, value);
+    else localStorage.removeItem(API_BASE_STORAGE_KEY);
+    primeApiBaseInput();
+  }
+
+  // ── TRACK DATA (lesson titles only) ──────────────────────────────
+  const TRACKS = {
+    financial:       { name:'💰 Financial Literacy', lessons:['Why Money Matters','Building Your First Budget','Debt: Understanding and Eliminating It','Credit Scores and How to Rebuild Them','Emergency Funds','Saving and Investing Basics','Generational Wealth','Your Financial Action Plan'] },
+    emotional:       { name:'💗 Emotional Intelligence', lessons:['What Is Emotional Intelligence?','Recognizing and Naming Your Emotions','Understanding Emotional Triggers','Empathy — Feeling With Others','Communication Without Conflict','Setting Healthy Boundaries','Emotional Regulation Under Stress','Relationships and Emotional Health','Healing Old Emotional Wounds','Building an Emotionally Intelligent Life'] },
+    health:          { name:'🧠 Mental & Physical Wellness', lessons:['The Mind-Body Connection','Sleep, Stress, and Your Health','Nutrition Without Diet Culture','Movement as Medicine','Managing Anxiety and Depression Naturally','Digital Wellness and Mental Clarity','Building Sustainable Healthy Habits'] },
+    rights:          { name:'⚖️ Know Your Rights', lessons:['Know Your Constitutional Rights','Your Rights When Stopped by Police','Housing Rights and Tenant Protections','Workplace Rights and Labor Laws','Know Your Rights in Court','Advocacy — Fighting for Your Community'] },
+    leadership:      { name:'🦁 Leadership & Influence', lessons:['What Makes a True Leader?','Vision: Seeing Before Others See','Communication That Moves People','Building and Leading Teams','Conflict Resolution and Hard Conversations','Servant Leadership','Leading Through Crisis','Influence Without Authority','Legacy Leadership'] },
+    entrepreneurship:{ name:'🚀 Entrepreneurship from Zero', lessons:['The Entrepreneurial Mindset','Finding Your Problem to Solve','Validating Your Idea','Business Models That Work','Building Your Brand','Marketing on Zero Dollars','Sales Without Feeling Salesy','Financial Basics for Business Owners','Legal Foundations','Building a Team and Culture','Scaling and Growth Strategy','Launching and Sustaining Your Business'] },
+    faith:           { name:'🙏 Faith Foundations', lessons:['Who Is God?','Prayer — More Than Asking','Reading Scripture With Understanding','The Character of God','Faith That Works','Spiritual Disciplines That Transform','Hearing God\'s Voice','Walking in the Spirit Daily','Handling Doubt and Spiritual Dry Seasons','A Life of Faith'] },
+    purpose:         { name:'🌟 Discovering Your Purpose', lessons:['Created on Purpose for a Purpose','Discovering Your God-Given Gifts','Your Story as Your Message','The Intersection of Passion, Skill, and Need','Clearing What Blocks Your Purpose','Aligning Your Work With Your Calling','Taking the First Step','Living a Purpose-Driven Life Daily'] },
+    theology:        { name:'📖 Biblical Wisdom for Modern Life', lessons:['How to Study the Bible','Old Testament Overview','New Testament Overview','Jesus: Who He Said He Was','The Holy Spirit and His Role','Salvation, Grace, and Faith','The Church','Biblical Ethics','Wealth and Poverty in Scripture','Justice, Race, and the Kingdom','Suffering and the Sovereignty of God','Prayer, Fasting, and Spiritual Warfare','End Times','Living as a Biblical Witness'] },
+    ministry:        { name:'🕊️ Community Ministry & Service', lessons:['What Is Ministry?','Serving Your Immediate Community','Working With Nonprofits','Organizing Community Outreach','Faith and Social Justice','Discipleship','Building Sustainable Ministry Programs','Measuring Kingdom Impact'] },
+    healing:         { name:'💜 Spiritual Healing & Restoration', lessons:['Naming the Wound','How Trauma Lives in the Body','The Role of Grief in Healing','Breaking Soul Ties','Forgiveness — Who It\'s Really For','Walking Out of Addiction','Renewing the Mind','Spiritual Warfare and Inner Freedom','Restored — Walking in Wholeness'] },
+    ethics:          { name:'⭐ Ethics, Justice & Kingdom Values', lessons:['What Is Justice?','Racial Reconciliation and the Church','Economic Justice and Systemic Poverty','Care for the Vulnerable','Environmental Stewardship','Political Engagement and Kingdom Values','Business Ethics and Integrity','Sexual Ethics and Relational Integrity','Media, Truth, and Discernment','Being a Prophetic Voice'] },
+    teachertraining: { name:'📐 How to Teach Effectively', lessons:['Why Teaching Matters','How People Actually Learn','Structuring a Lesson That Sticks','Communicating With Clarity and Power','Using Technology to Teach','Building a Legacy Library of Lessons'] },
+    parenting:       { name:'👨‍👩‍👧 Parenting & Raising Whole Children', lessons:['Children Are Not Small Adults','Emotional Attunement','Discipline Without Trauma','Teaching Children About God','Money and Work Ethic for Kids','Identity, Worth, and Who They Are in Christ','Navigating Technology and Screen Time','Raising Whole, Resilient Children'] },
+  };
+
+  let currentProgressUser = null;
+
+  // ── ACCESS GUARD ──────────────────────────────────────────────────
+  async function checkAdmin() {
+    
+    console.log('Checking admin access...');
+     
+    if (!TOKEN) {
+      console.log('No token found');
+      redirect();
+      return;
+    }
+
+    try {
+      const res = await fetch(apiUrl('/api/me'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      console.log('API response status:', res.status);
+
+      if (!res.ok) {
+        console.log('API returned error');
+        redirect();
+        return;
+      }
+
+      const user = await res.json();
+      console.log('User data:', user);
+
+      if (user.role !== 'admin') {
+        throw new Error('Admin access only');
+      }
+
+    } catch(e) {
+      console.error('Admin check error:', e);
+      redirect();
+    }
+  }
+
+  function redirect() {
+    alert('Access denied. Please sign in as an admin.');
+    window.location.href = 'index.html';
+  }
+  document.addEventListener('DOMContentLoaded', checkAdmin);
+  
+
+  // ── STATS ─────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const res = await fetch(apiUrl('/api/admin/stats'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+      
+      if (!res.ok) {
+        console.error('Stats load failed:', res.status);
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById('statUsers').textContent = data.totalUsers ?? '—';
+      document.getElementById('statLessons').textContent = data.completedLessons ?? '—';
+      document.getElementById('statAdmins').textContent = data.totalAdmins ?? '—';
+      document.getElementById('statTeachers').textContent = data.totalTeachers ?? '—';
+    } catch(e) {
+      console.error('Failed to load stats:', e);
+    }
+  }
+
+  // ── USERS ─────────────────────────────────────────────────────────
+  async function loadUsers() {
+    const container = document.getElementById('users');
+    container.innerHTML = '<div class="empty-msg">Loading...</div>';
+    try {
+      const res = await fetch(apiUrl('/api/admin/users'), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        container.innerHTML = '<div class="error-msg">❌ Failed to load users: ' + (data.error || 'Unknown error') + '</div>';
+        return;
+      }
+
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        container.innerHTML = '<div class="error-msg">❌ Invalid response format</div>';
+        return;
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = '<div class="empty-msg">No users found.</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(u => `
+        <div class="user-card">
+          <div class="user-info">
+            <span class="user-email">${u.email}</span>
+            <span class="user-role-badge role-${u.role}">${u.role}</span>
+          </div>
+          <div class="user-actions">
+            <button class="btn btn-progress" onclick="openProgressModal(${u.id}, '${u.email}')">📋 Progress</button>
+            <button class="btn btn-role ${u.role === 'student' ? 'active' : ''}" onclick="changeRole(${u.id}, 'student')">Student</button>
+            <button class="btn btn-role ${u.role === 'teacher' ? 'active' : ''}" onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
+            <button class="btn btn-role admin-btn ${u.role === 'admin' ? 'active' : ''}" onclick="changeRole(${u.id}, 'admin')">Admin</button>
+            ${u.email === localStorage.getItem('rfree_email') ? `<button class="btn btn-delete" onclick="resetUserToAdmin(${u.id})" style="background:rgba(34,197,94,0.2); color:#86efac; border-color:rgba(34,197,94,0.4);">🔄 Reset to Admin</button>` : ''}
+            <button class="btn btn-delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) {
+      console.error('Failed to load users:', e);
+      container.innerHTML = '<div class="error-msg">❌ Could not connect to server.</div>';
+    }
+  }
+
+  // ── PROGRESS MODAL ────────────────────────────────────────────────
+  async function openProgressModal(userId, email) {
+    currentProgressUser = { id: userId, email, progress: {} };
+    document.getElementById('progressModalTitle').textContent = 'Manage Progress';
+    document.getElementById('progressModalEmail').textContent = email;
+    document.getElementById('progressModalBody').innerHTML = '<div class="modal-loading">Loading...</div>';
+    document.getElementById('progressModal').classList.add('open');
+
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-progress?userId=' + userId), {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+
+      if (!res.ok) {
+        document.getElementById('progressModalBody').innerHTML = '<div class="error-msg">❌ Failed to load progress.</div>';
+        return;
+      }
+
+      const data = await res.json();
+      currentProgressUser.progress = data.progress || {};
+      renderProgressModal();
+    } catch(e) {
+      console.error('Failed to load progress:', e);
+      document.getElementById('progressModalBody').innerHTML = '<div class="error-msg">❌ Could not load progress.</div>';
+    }
+  }
+
+  function renderProgressModal() {
+    const { progress } = currentProgressUser;
+    let html = '';
+    for (const [trackId, track] of Object.entries(TRACKS)) {
+      const done = progress[trackId] || [];
+      html += `
+        <div class="track-block">
+          <div class="track-header">
+            ${track.name}
+            <span class="track-progress-badge">${done.length} / ${track.lessons.length}</span>
+          </div>
+          ${track.lessons.map((title, i) => {
+            const isDone = done.includes(i);
+            return `
+              <div class="lesson-row">
+                <span class="lesson-num">${i + 1}</span>
+                <span class="lesson-title-text">${title}</span>
+                <button class="toggle-btn ${isDone ? 'is-done' : 'is-undone'}"
+                  onclick="toggleLesson('${trackId}', ${i})">
+                  ${isDone ? '✅ Done' : '○ Mark Done'}
+                </button>
+              </div>`;
+          }).join('')}
+        </div>`;
+    }
+    document.getElementById('progressModalBody').innerHTML = html;
+  }
+
+  async function toggleLesson(trackId, index) {
+    const { id, progress } = currentProgressUser;
+    const current = progress[trackId] || [];
+    const isDone = current.includes(index);
+    const updated = isDone ? current.filter(i => i !== index) : [...current, index];
+    currentProgressUser.progress[trackId] = updated;
+
+    // Optimistic UI update
+    renderProgressModal();
+
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-progress'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId: id, trackId, lessonIndex: index, completed: !isDone })
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save progress');
+      }
+    } catch(e) {
+      console.error('Toggle lesson error:', e);
+      // Revert on failure
+      currentProgressUser.progress[trackId] = current;
+      renderProgressModal();
+      alert('Failed to save. Please try again.');
+    }
+  }
+
+  function closeProgressModal(e) {
+    if (e && e.target !== document.getElementById('progressModal')) return;
+    document.getElementById('progressModal').classList.remove('open');
+    currentProgressUser = null;
+  }
+
+  // ── CHANGE ROLE ───────────────────────────────────────────────────
+  async function changeRole(userId, role) {
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-role'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId, role, action: 'set' })  // 'set' replaces role, not adds
+      });
+
+      if (!res.ok) throw new Error('Failed to change role');
+      
+      loadUsers();
+      loadStats();
+      alert(`✅ User role set to: ${role.toUpperCase()}`);
+    } catch(e) {
+      console.error('Change role error:', e);
+      alert('Failed to change role.');
+    }
+  }
+
+  // Reset user to ADMIN ONLY (clear all other roles)
+  async function resetUserToAdmin(userId) {
+    if (!confirm('Reset this user to ADMIN role only?')) return;
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-role'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId, role: 'admin', action: 'reset' })  // 'reset' clears all, then sets admin
+      });
+
+      if (!res.ok) throw new Error('Failed to reset role');
+      
+      loadUsers();
+      loadStats();
+      alert(`✅ User reset to ADMIN only!`);
+    } catch(e) {
+      console.error('Reset role error:', e);
+      alert('Failed to reset role.');
+    }
+  }
+
+  // ── DELETE USER ───────────────────────────────────────────────────
+  async function deleteUser(userId) {
+    if (!confirm('Delete this user? This cannot be undone.')) return;
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-delete'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId })
+      });
+
+      if (!res.ok) throw new Error('Failed to delete user');
+      
+      loadUsers();
+      loadStats();
+    } catch(e) {
+      console.error('Delete user error:', e);
+      alert('Failed to delete user.');
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async () => {
+    primeApiBaseInput();
+    await checkAdmin();
+    loadStats();
+    loadUsers();
+  });
+</script>
+</body>
+</html>

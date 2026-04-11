@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<h1>📊 Student Dashboard</h1>
+
+<h3>Progress</h3>
+<div id="progressBar" style="width:300px;height:20px;background:#333;">
+  <div id="fill" style="height:20px;background:green;width:0%"></div>
+</div>
+
+<h3>XP: <span id="xp">0</span></h3>
+
+<script>
+const API_BASE_STORAGE_KEY = "rfree_api_base";
+const token = localStorage.getItem("rfree_token");
+
+function normalizeApiBase(value = "") {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function apiUrl(path) {
+  const params = new URLSearchParams(window.location.search);
+  const base = normalizeApiBase(params.get("api") || localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  return base ? `${base}${path}` : path;
+}
+
+async function load() {
+  const res = await fetch(apiUrl("/api/progress"), {
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  const data = await res.json();
+
+  const completed = (Array.isArray(data) ? data : []).filter((p) => p.completed).length;
+  const total = 10; // or dynamic later
+
+  const percent = (completed / total) * 100;
+
+  document.getElementById("fill").style.width = percent + "%";
+  document.getElementById("xp").innerText = completed * 10;
+}
+
+load();
+</script>

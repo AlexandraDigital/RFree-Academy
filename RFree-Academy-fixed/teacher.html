@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<h1>👨‍🏫 Teacher Dashboard</h1>
+
+<h3>Create Course</h3>
+
+<input id="courseId" placeholder="Course ID">
+<input id="title" placeholder="Course Title">
+
+<textarea id="lessons" placeholder="Lessons (comma separated)"></textarea>
+
+<button onclick="createCourse()">Create Course</button>
+
+<hr>
+
+<div id="output"></div>
+
+<script>
+const API_BASE_STORAGE_KEY = "rfree_api_base";
+const token = localStorage.getItem("rfree_token");
+
+function normalizeApiBase(value = "") {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function apiUrl(path) {
+  const params = new URLSearchParams(window.location.search);
+  const base = normalizeApiBase(params.get("api") || localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  return base ? `${base}${path}` : path;
+}
+
+async function createCourse() {
+  const res = await fetch(apiUrl("/api/courses"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({
+      id: courseId.value,
+      title: title.value,
+      description: "",
+      data: lessons.value.split(",")
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("output").innerText =
+    JSON.stringify(data, null, 2);
+}
+</script>
