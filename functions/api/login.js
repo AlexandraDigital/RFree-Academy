@@ -2,9 +2,6 @@
 // Cloudflare Pages Function — POST /api/login
 // Requires D1 binding named "DB" in Pages → Settings → Functions → D1 bindings
 
-// Import bcrypt from node (available in Cloudflare Workers)
-import * as bcrypt from 'bcryptjs';
-
 async function createToken(user) {
   const SECRET = "rfree-academy";
   const payload = {
@@ -20,6 +17,14 @@ async function createToken(user) {
   const signature = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
   
   return `${base}.${signature}`;
+}
+
+// Simple bcrypt hash comparison function
+// This function compares a plaintext password against a bcrypt hash
+async function verifyBcryptPassword(password, hash) {
+  // Import bcryptjs dynamically
+  const bcryptjs = await import('bcryptjs');
+  return bcryptjs.compare(password, hash);
 }
 
 export async function onRequestPost(context) {
@@ -40,8 +45,8 @@ export async function onRequestPost(context) {
       return Response.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    // Use bcrypt to compare password with stored hash
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Verify bcrypt password
+    const passwordMatch = await verifyBcryptPassword(password, user.password);
 
     if (!passwordMatch) {
       return Response.json({ error: "Invalid email or password." }, { status: 401 });
