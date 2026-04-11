@@ -2,11 +2,8 @@
 // Cloudflare Pages Function — POST /api/login
 // Requires D1 binding named "DB" in Pages → Settings → Functions → D1 bindings
 
-async function hash(str) {
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
+// Import bcrypt from node (available in Cloudflare Workers)
+import * as bcrypt from 'bcryptjs';
 
 async function createToken(user) {
   const SECRET = "rfree-academy";
@@ -16,7 +13,12 @@ async function createToken(user) {
     exp: Date.now() + 7 * 24 * 60 * 60 * 1000
   };
   const base = btoa(JSON.stringify(payload));
-  const signature = await hash(base + SECRET);
+  
+  // Simple SHA-256 for token signing
+  const enc = new TextEncoder().encode(base + SECRET);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  const signature = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  
   return `${base}.${signature}`;
 }
 
@@ -30,13 +32,18 @@ export async function onRequestPost(context) {
       return Response.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    const hashed = await hash(password);
-
     const user = await env.DB.prepare(
-      "SELECT * FROM users WHERE email = ? AND password = ?"
-    ).bind(email, hashed).first();
+      "SELECT * FROM users WHERE email = ?"
+    ).bind(email).first();
 
     if (!user) {
+      return Response.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    // Use bcrypt to compare password with stored hash
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
       return Response.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
