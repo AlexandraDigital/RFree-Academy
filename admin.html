@@ -15,6 +15,7 @@
     .btn-load     { background: #7c3aed; color: #fff; }
     .btn-role     { background: rgba(56,189,248,0.15); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); font-size: 0.78rem; padding: 4px 10px; }
     .btn-role.admin-btn { background: rgba(245,158,11,0.15); color: #fde68a; border-color: rgba(245,158,11,0.4); }
+    .btn-role.active { opacity: 1; font-weight: 700; border-width: 2px; box-shadow: 0 0 8px currentColor; }
     .btn-delete   { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); font-size: 0.78rem; padding: 4px 10px; }
     .btn-progress { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; padding: 4px 10px; }
     .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 2rem; }
@@ -247,9 +248,10 @@
           </div>
           <div class="user-actions">
             <button class="btn btn-progress" onclick="openProgressModal(${u.id}, '${u.email}')">📋 Progress</button>
-            <button class="btn btn-role" onclick="changeRole(${u.id}, 'student')">Student</button>
-            <button class="btn btn-role" onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
-            <button class="btn btn-role admin-btn" onclick="changeRole(${u.id}, 'admin')">Admin</button>
+            <button class="btn btn-role ${u.role === 'student' ? 'active' : ''}" onclick="changeRole(${u.id}, 'student')">Student</button>
+            <button class="btn btn-role ${u.role === 'teacher' ? 'active' : ''}" onclick="changeRole(${u.id}, 'teacher')">Teacher</button>
+            <button class="btn btn-role admin-btn ${u.role === 'admin' ? 'active' : ''}" onclick="changeRole(${u.id}, 'admin')">Admin</button>
+            ${u.email === localStorage.getItem('rfree_email') ? `<button class="btn btn-delete" onclick="resetUserToAdmin(${u.id})" style="background:rgba(34,197,94,0.2); color:#86efac; border-color:rgba(34,197,94,0.4);">🔄 Reset to Admin</button>` : ''}
             <button class="btn btn-delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
           </div>
         </div>
@@ -356,16 +358,38 @@
       const res = await fetch(apiUrl('/api/admin/user-role'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-        body: JSON.stringify({ userId, role })
+        body: JSON.stringify({ userId, role, action: 'set' })  // 'set' replaces role, not adds
       });
 
       if (!res.ok) throw new Error('Failed to change role');
       
       loadUsers();
       loadStats();
+      alert(`✅ User role set to: ${role.toUpperCase()}`);
     } catch(e) {
       console.error('Change role error:', e);
       alert('Failed to change role.');
+    }
+  }
+
+  // Reset user to ADMIN ONLY (clear all other roles)
+  async function resetUserToAdmin(userId) {
+    if (!confirm('Reset this user to ADMIN role only?')) return;
+    try {
+      const res = await fetch(apiUrl('/api/admin/user-role'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify({ userId, role: 'admin', action: 'reset' })  // 'reset' clears all, then sets admin
+      });
+
+      if (!res.ok) throw new Error('Failed to reset role');
+      
+      loadUsers();
+      loadStats();
+      alert(`✅ User reset to ADMIN only!`);
+    } catch(e) {
+      console.error('Reset role error:', e);
+      alert('Failed to reset role.');
     }
   }
 
