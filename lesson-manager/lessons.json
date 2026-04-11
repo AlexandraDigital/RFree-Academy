@@ -1,0 +1,14 @@
+export const lessons = [
+  {
+    id: "finance-1",
+    trackId: "financial",
+    lessonIndex: 0,
+    video: "https://youtube.com/embed/xxx"
+  },
+  {
+    id: "finance-2",
+    trackId: "financial",
+    lessonIndex: 1,
+    video: "https://youtube.com/embed/yyy"
+  }
+];
