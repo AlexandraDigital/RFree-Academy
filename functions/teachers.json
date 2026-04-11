@@ -2,11 +2,11 @@
   {
     "email": "teacher1@example.com",
     "password": "$2b$10$7G8f0vWqJvZ8qD1K1fE/4u1rhzQ9E.Vv3gkBk3ojfJ/dFztUptP8e",
-    "role": "teacher"
+    "role": "admin"
   },
   {
     "email": "teacher2@example.com",
     "password": "$2b$10$VfKj2CwG3p2H9s1Xk9Z/5amv6G9yY.aYAd5V5bPR7yC6WR2Bqa1q2",
-    "role": "teacher"
+    "role": "admin"
   }
 ]
