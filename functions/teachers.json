@@ -2,7 +2,7 @@
   "id": 2,
   "username": "Alex",
   "email": "Alex10@rfree.com",
-  "password": "$2a$10$OzNeLRPrdgWIp9CsN1Nz0.MFAlJ.6Y1kaRXpEdwf18ywwTTB474QO" 
+  "password": "$2b$10$xH4.VuRHPEs0phoKozVRne1S0uycv3BRQcX6g5U1ohGTNIjdNtpm." 
   "role": "admin",
   "created_at": "2026-04-11 00:54:00"
 }
