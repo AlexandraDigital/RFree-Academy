@@ -2,6 +2,9 @@
   {
     "email": "Alex11@rfree.com",
     "password": "$2a$10$yyMTKFoipF5FA./ac5RNxuyw3CMc.dyecAwrAcXcxEa8Xf/WGqMAu",
-    "role": "admin"
+    "role": "admin",
+    "id": 6
+    "username":"Alex11"
+    "created_at": "CURRENT_TIMESTAMP"
   },
 
