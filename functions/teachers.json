@@ -1,12 +1,7 @@
 [
   {
-    "email": "teacher1@example.com",
-    "password": "$2b$10$7G8f0vWqJvZ8qD1K1fE/4u1rhzQ9E.Vv3gkBk3ojfJ/dFztUptP8e",
+    "email": "Alex11@rfree.com",
+    "password": "$2a$10$yyMTKFoipF5FA./ac5RNxuyw3CMc.dyecAwrAcXcxEa8Xf/WGqMAu",
     "role": "admin"
   },
-  {
-    "email": "teacher2@example.com",
-    "password": "$2b$10$VfKj2CwG3p2H9s1Xk9Z/5amv6G9yY.aYAd5V5bPR7yC6WR2Bqa1q2",
-    "role": "admin"
-  }
-]
+
