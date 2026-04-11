@@ -107,7 +107,7 @@
 
   function getApiBase() {
     const params = new URLSearchParams(window.location.search);
-    return normalizeApiBase(params.get('api') || localStorage.getItem(API_BASE_STORAGE_KEY) || '');
+    return normalizeApiBase(params.get('api') || localStorage.getItem(API_BASE_STORAGE_KEY) || 'https://rfree-academy.pages.dev');
   }
 
   function apiUrl(path) {
@@ -175,9 +175,9 @@
       const user = await res.json();
       console.log('User data:', user);
 
-    if (d.role !== 'admin' && !d.isAdmin) {
-  throw new Error('Admin access only');
-}
+      if (user.role !== 'admin') {
+        throw new Error('Admin access only');
+      }
 
     } catch(e) {
       console.error('Admin check error:', e);
