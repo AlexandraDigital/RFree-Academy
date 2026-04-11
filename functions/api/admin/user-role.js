@@ -1,3 +1,4 @@
+// functions/api/admin/user-role.js
 import { corsHeaders, requireAdmin } from "../../_lib/auth.js";
 
 const ALLOWED_ROLES = new Set(["student", "teacher", "admin"]);
@@ -9,10 +10,14 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const { userId, role, action } = await request.json();
+    const { userId, role } = await request.json();
 
     if (!userId) {
       return Response.json({ error: "Valid userId is required." }, { status: 400, headers: corsHeaders });
+    }
+
+    if (!ALLOWED_ROLES.has(role)) {
+      return Response.json({ error: "Valid role is required (student, teacher, admin)." }, { status: 400, headers: corsHeaders });
     }
 
     const existing = await env.DB.prepare(
@@ -23,19 +28,11 @@ export async function onRequestPost({ request, env }) {
       return Response.json({ error: "User not found." }, { status: 404, headers: corsHeaders });
     }
 
-    // If action is 'reset', always set to 'admin'. Otherwise validate and set the requested role.
-    let newRole = role;
-    if (action === "reset") {
-      newRole = "admin";
-    } else if (!ALLOWED_ROLES.has(role)) {
-      return Response.json({ error: "Valid role is required." }, { status: 400, headers: corsHeaders });
-    }
-
     await env.DB.prepare(
       "UPDATE users SET role = ? WHERE id = ?"
-    ).bind(newRole, userId).run();
+    ).bind(role, userId).run();
 
-    return Response.json({ ok: true, userId: Number(userId), role: newRole }, { headers: corsHeaders });
+    return Response.json({ ok: true, userId: Number(userId), role }, { headers: corsHeaders });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500, headers: corsHeaders });
   }

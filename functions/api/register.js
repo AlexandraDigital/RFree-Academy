@@ -2,66 +2,45 @@
 // Cloudflare Pages Function — POST /api/register
 // Requires D1 binding named "DB" in Pages → Settings → Functions → D1 bindings
 
-async function hash(str) {
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function createToken(user) {
-  const SECRET = "rfree-academy";
-  const payload = {
-    id: user.id,
-    role: user.role,
-    exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-  };
-  const base = btoa(JSON.stringify(payload));
-  const signature = await hash(base + SECRET);
-  return `${base}.${signature}`;
-}
+import { createToken, corsHeaders } from "../_lib/auth.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    const { email, password, role } = await request.json();
+    const { email, password } = await request.json();
 
     if (!email || !password) {
-      return Response.json({ error: "Email and password are required." }, { status: 400 });
+      return Response.json({ error: "Email and password are required." }, { status: 400, headers: corsHeaders });
     }
 
-    // Check if email already exists
+    // Always register as student — never trust role from client
     const existing = await env.DB.prepare(
       "SELECT id FROM users WHERE email = ?"
     ).bind(email).first();
 
     if (existing) {
-      return Response.json({ error: "An account with this email already exists." }, { status: 409 });
+      return Response.json({ error: "An account with this email already exists." }, { status: 409, headers: corsHeaders });
     }
 
-    const hashed = await hash(password);
-    const userRole = role || "student";
+    const enc = new TextEncoder().encode(password);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    const hashed = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
 
     const result = await env.DB.prepare(
       "INSERT INTO users (email, password, role, created_at) VALUES (?, ?, ?, ?)"
-    ).bind(email, hashed, userRole, new Date().toISOString()).run();
+    ).bind(email, hashed, "student", new Date().toISOString()).run();
 
-    const newUser = { id: result.meta.last_row_id, role: userRole };
-    const token = await createToken(newUser);
+    const newUser = { id: result.meta.last_row_id, role: "student" };
+    const token = await createToken(newUser, env);
 
-    return Response.json({ token, role: userRole, userId: newUser.id });
+    return Response.json({ token, role: "student", userId: newUser.id }, { headers: corsHeaders });
 
   } catch (e) {
-    return Response.json({ error: "Server error: " + e.message }, { status: 500 });
+    return Response.json({ error: "Server error: " + e.message }, { status: 500, headers: corsHeaders });
   }
 }
 
 export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return new Response(null, { headers: corsHeaders });
 }

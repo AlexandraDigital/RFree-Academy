@@ -1,23 +1,34 @@
+// functions/api/chat.js
+// Cloudflare Pages Function — POST /api/chat
+// Requires GROQ_API_KEY in Pages → Settings → Environment Variables
+// Requires D1 binding named "DB" for auth
+
+import { requireAuth, corsHeaders } from "../_lib/auth.js";
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  // GROQ_API_KEY must be set in CF Pages → Settings → Environment Variables
-  const apiKey = env.GROQ_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: { message: 'GROQ_API_KEY not configured in Cloudflare environment variables.' } }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-    });
+  // Only allow logged-in users to use the chat proxy
+  const user = await requireAuth(request, env);
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
   }
 
-  // Forward the request body straight to Groq
+  const apiKey = env.GROQ_API_KEY;
+  if (!apiKey) {
+    return Response.json(
+      { error: { message: "GROQ_API_KEY not configured in Cloudflare environment variables." } },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+
   const body = await request.text();
 
-  const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
+  const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
     },
     body,
   });
@@ -27,19 +38,12 @@ export async function onRequestPost(context) {
   return new Response(data, {
     status: groqResponse.status,
     headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      "Content-Type": "application/json",
+      ...corsHeaders,
     },
   });
 }
 
-// Handle preflight CORS
 export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return new Response(null, { headers: corsHeaders });
 }

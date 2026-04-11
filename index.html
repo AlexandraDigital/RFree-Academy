@@ -2836,9 +2836,17 @@ async function groqCall(prompt, systemPrompt = '') {
   const model = document.getElementById('aiModel')?.value || state.model;
   if(!key && !state.cfUrl) throw new Error('No API key configured. Go to Settings → API & AI.');
   
-  const endpoint = state.cfUrl ? state.cfUrl : 'https://api.groq.com/openai/v1/chat/completions';
+  const endpoint = state.cfUrl
+    ? state.cfUrl.replace(/\/+$/, '') + '/api/chat'
+    : 'https://api.groq.com/openai/v1/chat/completions';
   const headers = { 'Content-Type': 'application/json' };
-  if(!state.cfUrl) headers['Authorization'] = 'Bearer ' + key;
+  if(state.cfUrl) {
+    // Send user's auth token to our Pages proxy (which requires login)
+    const authToken = localStorage.getItem('rfree_token');
+    if(authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  } else {
+    headers['Authorization'] = 'Bearer ' + key;
+  }
   
   const body = {
     model,
