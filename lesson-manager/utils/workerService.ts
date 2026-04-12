@@ -7,6 +7,14 @@ function getWorkerUrl(): string {
   return (
     (typeof localStorage !== 'undefined' && localStorage.getItem('rfree_worker_url')) ||
     DEFAULT_WORKER_URL
+import { Lesson } from '../types';
+
+const DEFAULT_WORKER_URL = 'https://rfree-academy-backend.futuresuccess105.workers.dev';
+
+function getWorkerUrl(): string {
+  return (
+    (typeof localStorage !== 'undefined' && localStorage.getItem('rfree_worker_url')) ||
+    DEFAULT_WORKER_URL
   );
 }
 
@@ -34,14 +42,12 @@ export function youTubeThumbnail(videoId: string): string {
 
 export const workerService = {
   async fetchLessons(): Promise<Lesson[]> {
-    // UPDATED: Now calls the specific lessons API
     const res = await fetch(`${getWorkerUrl()}/api/lessons`);
     if (!res.ok) throw new Error('Failed to fetch lessons');
     return res.json();
   },
 
   async createLesson(data: Partial<Lesson>): Promise<Lesson> {
-    // UPDATED: Standardized path to /api/lessons
     const res = await fetch(`${getWorkerUrl()}/api/lessons`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
@@ -56,7 +62,7 @@ export const workerService = {
   },
 
   async updateLesson(id: string, data: Partial<Lesson>): Promise<Lesson> {
-    // FIXED: Uses query parameter (?id=) to match backend logic
+    // FIXED: Uses query param (?id=) to match your backend logic
     const res = await fetch(`${getWorkerUrl()}/api/lessons?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
@@ -71,7 +77,7 @@ export const workerService = {
   },
 
   async deleteLesson(id: string): Promise<void> {
-    // FIXED: Uses query parameter (?id=) and matches schema 'id' column
+    // FIXED: Uses ?id= and targets /api/lessons to fix the column mismatch
     const res = await fetch(`${getWorkerUrl()}/api/lessons?id=${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(),
@@ -82,9 +88,8 @@ export const workerService = {
     }
   },
 
-  // ADDED: Logic for deleting courses from the courses table
+  // ADDED: Handler for deleting entire courses if needed
   async deleteCourse(id: string): Promise<void> {
-    // FIXED: Targets /api/courses and uses query param (?id=)
     const res = await fetch(`${getWorkerUrl()}/api/courses?id=${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(),
