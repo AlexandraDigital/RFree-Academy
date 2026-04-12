@@ -1,18 +1,27 @@
 export async function onRequestDelete(context) {
-  const { env, params } = context;
-  // This 'id' comes from the URL (e.g., /api/courses/123)
-  const courseId = params.id; 
+  const { env, request } = context;
+  const url = new URL(request.url);
+  
+  // This looks for an ?id=... in the URL
+  const id = url.searchParams.get('id'); 
+
+  if (!id) {
+    return new Response(JSON.stringify({ error: "No ID provided" }), { status: 400 });
+  }
 
   try {
-    // The fix: Use 'id' here because that's what is in your courses table
+    // THE FIX: We use 'id' here because your table doesn't have 'course_id'
     await env.DB.prepare("DELETE FROM courses WHERE id = ?")
-      .bind(courseId)
+      .bind(id)
       .run();
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(err.message, { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), { 
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
