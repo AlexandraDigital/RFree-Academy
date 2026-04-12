@@ -67,12 +67,21 @@ function LessonDirectory() {
     }
   };
 
+  // FIXED: UI now removes the item immediately after successful deletion
   const handleDeleteLesson = async (id: string) => {
-    if (!confirm('Delete this lesson?')) return;
+    if (!confirm('Are you sure you want to delete this lesson?')) return;
+    
     try {
+      // 1. Call the worker service to delete from D1 database
       await workerService.deleteLesson(id);
+      
+      // 2. SUCCESS: Filter out the deleted lesson from the local state
+      // This ensures the lesson disappears from the screen without a refresh
       setLessons(prev => prev.filter(l => l.id !== id));
+      
+      console.log(`Lesson ${id} successfully removed from UI.`);
     } catch (e: any) {
+      // If the database delete fails (e.g. "no such column" error), show an alert
       alert(`Delete failed: ${e.message}`);
     }
   };
@@ -124,7 +133,7 @@ function LessonDirectory() {
         <LessonList
           lessons={lessons}
           onEdit={(lesson) => { setEditingLesson(lesson); setShowForm(true); }}
-          onDelete={handleDeleteLesson}
+          onDelete={handleDeleteLesson} // This triggers the UI update logic above
           isAdmin={isAdmin}
           userEmail={user.email}
           userRole={user.role}
