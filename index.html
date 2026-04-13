@@ -1285,6 +1285,10 @@ nav {
   margin-left: 10px;
 }
 
+/* ─── ROLE-BASED NAV: staff-only tabs hidden until confirmed staff ─── */
+.staff-only { display: none !important; }
+body.is-staff .staff-only { display: inline-flex !important; }
+
 /* ─── MOBILE NAV FIX: prevent buttons from covering page content ─── */
 @media (max-width: 640px) {
   nav {
@@ -1326,6 +1330,7 @@ nav {
     content: "📲";
     font-size: 1rem;
   }
+  
 }
 </style>
 </head>
@@ -1354,10 +1359,10 @@ nav {
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('home')">🏠 Home</button>
     <button class="nav-tab" onclick="showPage('tracks')">🌱 Impact Tracks</button>
-    <button class="nav-tab" onclick="showPage('library')">📚 Library</button>
-    <button class="nav-tab" onclick="showPage('generator')">✨ AI Generator</button>
-    <button class="nav-tab" onclick="showPage('studio')">🎬 Studio</button>
-    <button class="nav-tab" onclick="showPage('transcript')">📝 Transcripts</button>
+    <button class="nav-tab staff-only" onclick="showPage('library')">📚 Library</button>
+    <button class="nav-tab staff-only" onclick="showPage('generator')">✨ AI Generator</button>
+    <button class="nav-tab staff-only" onclick="showPage('studio')">🎬 Studio</button>
+    <button class="nav-tab staff-only" onclick="showPage('transcript')">📝 Transcripts</button>
     <button class="nav-tab" onclick="showPage('community')">🤝 Community</button>
     <button class="nav-tab" onclick="showPage('certificates')">🎓 Certificates</button>
     <button class="nav-tab" onclick="showPage('support')">💜 Support Us</button>
@@ -1366,9 +1371,11 @@ nav {
 
   <!-- Nav Actions -->
   <div class="nav-actions">
+    
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲 Install</button>
-    <button class="btn btn-ghost" onclick="showModal('loginModal')">Sign In</button>
-    <button class="btn btn-primary" onclick="showModal('loginModal')">Join Free</button>
+    <button class="btn btn-ghost" id="signInBtn" onclick="openSignIn()">Sign In</button>
+    <button class="btn btn-primary" id="joinBtn" onclick="openJoinFree()">Join Free</button>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="logout()" style="display:none">🚪 Log Out</button>
   </div>
 </nav>
 <!-- TOAST CONTAINER -->
@@ -1382,7 +1389,7 @@ nav {
     <p>Financial literacy. Emotional intelligence. Faith & purpose. RFree Academy teaches real-life wisdom — and connects you to a community where you can teach others, earn recognition, and do the work of God in the world.</p>
     <div class="hero-cta">
       <button class="btn btn-primary btn-lg" onclick="showPage('tracks')">🌱 Explore Impact Tracks</button>
-      <button class="btn btn-gold btn-lg" onclick="showPage('studio')">🎬 Start Teaching</button>
+      <button class="btn btn-gold btn-lg" onclick="isStaff() ? showPage('studio') : showToast('⛔ Studio is for teachers and admins only.','error')">🎬 Start Teaching</button>
       <button class="btn btn-ghost btn-lg" onclick="showPage('community')">🤝 Join the Community</button>
     </div>
     <div class="stats-row">
@@ -1450,9 +1457,6 @@ nav {
       <option value="art">Art</option>
       <option value="other">Other</option>
     </select>
-    <button class="btn btn-mint" onclick="syncLessonsToGitHub()" title="Push all lessons to GitHub repository">🚀 Sync to GitHub</button>
-    <button class="btn btn-primary" onclick="importLessonsJSON()" title="Import lessons from JSON file">📤 Import Lessons</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImportFile(this)">
     <button class="btn btn-primary" onclick="exportLessonsJSON()" title="Download lessons as JSON for backup">📥 Export Lessons</button>
     <button class="btn btn-danger" onclick="clearLibrary()" title="Delete all lessons from library (cannot be undone)">🗑️ Clear Library</button>
   </div>
@@ -1561,8 +1565,8 @@ nav {
         <div class="page-subtitle">Canvas · Screen · Webcam · Draw — all composited live</div>
       </div>
       <div class="flex gap-1" style="flex-wrap:wrap">
-        <input class="form-input" id="lessonTitleInput" placeholder="Lesson title..." style="width:200px;border-radius:100px;padding:8px 16px;font-size:0.85rem" oninput="autoSaveLesson()" />
-        <select class="form-select" id="lessonSubject" style="width:130px;border-radius:100px;font-size:0.85rem" onchange="autoSaveLesson()">
+        <input class="form-input" id="lessonTitleInput" placeholder="Lesson title..." style="width:200px;border-radius:100px;padding:8px 16px;font-size:0.85rem" />
+        <select class="form-select" id="lessonSubject" style="width:130px;border-radius:100px;font-size:0.85rem">
           <option value="math">Math</option>
           <option value="science">Science</option>
           <option value="english">English</option>
@@ -1750,11 +1754,11 @@ nav {
         <h4>📝 Lesson Info</h4>
         <div class="form-group" style="margin-bottom:0.75rem">
           <label class="form-label">Teacher Name</label>
-          <input class="form-input" id="teacherName" placeholder="Your name..." style="font-size:0.85rem" oninput="autoSaveLesson()" />
+          <input class="form-input" id="teacherName" placeholder="Your name..." style="font-size:0.85rem" />
         </div>
         <div class="form-group" style="margin-bottom:0.75rem">
           <label class="form-label">Grade Level</label>
-          <select class="form-select" id="studioGrade" style="font-size:0.85rem" onchange="autoSaveLesson()">
+          <select class="form-select" id="studioGrade" style="font-size:0.85rem">
             <option value="K-5">K–5</option>
             <option value="6-8" selected>6–8</option>
             <option value="9-12">9–12</option>
@@ -1762,12 +1766,8 @@ nav {
             <option value="all">All Ages</option>
           </select>
         </div>
-        <div class="form-group" style="margin-bottom:0.75rem">
-          <label class="form-label">Video URL</label>
-          <input class="form-input" id="videoUrl" placeholder="https://example.com/video.mp4" style="font-size:0.85rem" oninput="autoSaveLesson()" />
-        </div>
         <label class="form-label">Notes / Outline</label>
-        <textarea class="form-textarea" id="lessonNotes" placeholder="Paste your AI outline here or add talking points..." style="min-height:90px;font-size:0.82rem" oninput="autoSaveLesson()"></textarea>
+        <textarea class="form-textarea" id="lessonNotes" placeholder="Paste your AI outline here or add talking points..." style="min-height:90px;font-size:0.82rem"></textarea>
       </div>
     </div>
   </div>
@@ -1986,6 +1986,15 @@ nav {
           </select>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">GitHub Repo (for lesson links &amp; sync)</label>
+          <div class="api-key-input-group">
+            <input class="form-input" id="githubRepo" placeholder="YourName/your-repo" />
+            <button class="btn btn-primary btn-sm" onclick="saveGithubRepo()">Save</button>
+          </div>
+          <div class="text-muted mt-1">e.g. <code style="color:var(--purple-300)">ImpactLearning/rfree-academy</code> — used to generate lesson URLs and sync files</div>
+        </div>
+
         <button class="btn btn-mint" onclick="testConnection()">🔌 Test Connection</button>
         <div id="connectionStatus" class="mt-1 text-muted" style="font-size:0.82rem"></div>
       </div>
@@ -2006,7 +2015,7 @@ nav {
           <select class="form-select" id="userRole">
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
-            <option value="both">Both</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
         <button class="btn btn-primary" onclick="saveAccount()">Save Profile</button>
@@ -2548,23 +2557,39 @@ nav {
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- Create Account MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
-    <h2>Join RFree Academy</h2>
-    <p>Create a free account to save lessons, track progress, and get certificates.</p>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input class="form-input" type="email" placeholder="your@email.com" />
+
+    <!-- Title & subtitle swap between register/login mode -->
+    <h2 id="loginModalTitle">Sign In</h2>
+    <p id="loginModalSubtitle">Welcome back! Learning takes one step.</p>
+
+    <div class="auth-toggle">
+      <div class="form-group">
+        <label class="form-label">EMAIL</label>
+        <input id="email" class="form-input" type="email" placeholder="your@email.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">PASSWORD</label>
+        <input id="password" class="form-input" type="password" placeholder="••••••••" />
+      </div>
+
+      <!-- Backend URL field — hidden by default (Sign In mode) -->
+      <div class="form-group" id="backendUrlGroup" style="display:none">
+        <label class="form-label">BACKEND API URL</label>
+        <input id="apiBaseUrl" class="form-input" type="url" placeholder="https://rfree-academy-backend.futuresuccess105.workers.dev" />
+        <p style="font-size:0.78rem;color:var(--purple-300);margin-top:6px">Use this when your frontend is on Pages and your backend is a separate Worker.</p>
+      </div>
+
+      <!-- Primary action button -->
+      <button id="submitBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;border-radius:999px" onclick="handleAuthSubmit()">Sign In</button>
+
+      <!-- Toggle -->
+      <button id="toggleAuthBtn" class="btn btn-ghost btn-lg" style="width:100%;margin-top:10px;border-radius:999px" onclick="toggleAuthMode()">Create Account Instead</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="form-input" type="password" placeholder="••••••••" />
-    </div>
-    <button class="btn btn-primary w-full btn-lg" onclick="createAccount()">Create Free Account</button>
-    <div class="divider"></div>
-    <button class="btn btn-ghost w-full" onclick="signIn()">Sign In Instead</button>
   </div>
 </div>
 
@@ -2618,6 +2643,47 @@ nav {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+
+// ─── ADMIN CHECK ───
+function isAdmin() { return localStorage.getItem('rfree_role') === 'admin' && localStorage.getItem('rfree_logged_in') === '1'; }
+function isStaff() { const r = localStorage.getItem('rfree_role'); return (r === 'admin' || r === 'teacher') && localStorage.getItem('rfree_logged_in') === '1'; }
+
+
+// ─── ADMIN BUTTON HELPER ───
+function showAdminButton() {
+  let btn = document.getElementById('adminPanelBtn');
+  if(!btn) {
+    btn = document.createElement('a');
+    btn.id = 'adminPanelBtn';
+    btn.href = 'admin-dashboard.html';
+    btn.className = 'btn btn-gold btn-sm';
+    btn.textContent = '👑 Admin';
+    btn.style.textDecoration = 'none';
+    document.querySelector('.nav-actions').prepend(btn);
+  }
+  btn.style.display = 'inline-flex';
+}
+
+// ─── ROLE-BASED NAV SETUP ───
+// Applies on every page load. Staff (teacher/admin) see all tabs;
+// students and guests see only the public-facing tabs.
+(function applyRoleNav() {
+  const loggedIn = localStorage.getItem('rfree_logged_in') === '1';
+  const role = localStorage.getItem('rfree_role');
+  const isStaffUser = loggedIn && (role === 'admin' || role === 'teacher');
+
+  // Activate body class so CSS shows .staff-only tabs
+  if (isStaffUser) document.body.classList.add('is-staff');
+
+  // Admin badge
+  if (loggedIn && role === 'admin') showAdminButton();
+
+  // Logout button
+  if (loggedIn) {
+    const lb = document.getElementById('logoutBtn');
+    if (lb) lb.style.display = 'inline-flex';
+  }
+})();
 const state = {
   lessons: JSON.parse(localStorage.getItem('rfree_lessons') || '[]'),
   lessonDone: JSON.parse(localStorage.getItem('rfree_lesson_done') || '{}'),
@@ -2636,6 +2702,48 @@ const state = {
   selectedDonation: '$5',
 };
 
+const API_BASE_STORAGE_KEY = 'rfree_api_base';
+// XSS protection — always use this for user-generated content in innerHTML
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+const DEFAULT_API_BASE = 'https://rfree-academy-backend.futuresuccess105.workers.dev';
+
+function normalizeApiBase(value = '') {
+  return value.trim().replace(/\/+$/, '');
+}
+
+function getConfiguredApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  const queryValue = normalizeApiBase(params.get('api') || '');
+  const storedValue = normalizeApiBase(localStorage.getItem(API_BASE_STORAGE_KEY) || '');
+  return queryValue || storedValue || DEFAULT_API_BASE;
+}
+
+function apiUrl(path) {
+  const base = getConfiguredApiBase();
+  return base ? `${base}${path}` : path;
+}
+
+function saveApiBasePreference() {
+  const input = document.getElementById('apiBaseUrl');
+  if (!input) return;
+
+  const value = normalizeApiBase(input.value);
+  if (value) localStorage.setItem(API_BASE_STORAGE_KEY, value);
+  else localStorage.removeItem(API_BASE_STORAGE_KEY);
+}
+
+function primeApiBaseInput() {
+  const input = document.getElementById('apiBaseUrl');
+  if (!input) return;
+  input.value = getConfiguredApiBase();
+}
+
+primeApiBaseInput();
+
 // ─────────────────────────── NAVIGATION ───────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2648,13 +2756,18 @@ function showPage(id) {
     if(label && t.textContent.includes(label)) t.classList.add('active');
     if(id==='home' && t.textContent.includes('Home')) t.classList.add('active');
   });
+  if(['generator','studio','library','transcript'].includes(id) && !isStaff()) {
+    showToast('⛔ This section is for teachers and admins only.', 'error');
+    showPage('home');
+    return;
+  }
   if(id === 'library') renderLibrary();
   if(id === 'transcript') populateLessonSelect();
   if(id === 'studio') {
     setTimeout(initCanvas, 50);
-    document.getElementById('annotationBar').style.display = 'flex';
+    document.getElementById('unifiedToolbar').style.display = 'flex';
   } else {
-    document.getElementById('annotationBar').style.display = 'none';
+    document.getElementById('unifiedToolbar').style.display = 'none';
   }
   if(id === 'certificates') updateCertPreview();
   window.scrollTo(0, 0);
@@ -2745,9 +2858,15 @@ async function groqCall(prompt, systemPrompt = '') {
   const model = document.getElementById('aiModel')?.value || state.model;
   if(!key && !state.cfUrl) throw new Error('No API key configured. Go to Settings → API & AI.');
   
-  const endpoint = state.cfUrl ? state.cfUrl : 'https://api.groq.com/openai/v1/chat/completions';
+  const endpoint = state.cfUrl ? state.cfUrl.replace(/\/+$/, '') : 'https://api.groq.com/openai/v1/chat/completions';
   const headers = { 'Content-Type': 'application/json' };
-  if(!state.cfUrl) headers['Authorization'] = 'Bearer ' + key;
+  if(state.cfUrl) {
+    // Send user's auth token to our Pages proxy (which requires login)
+    const authToken = localStorage.getItem('rfree_token');
+    if(authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  } else if(key) {
+    headers['Authorization'] = 'Bearer ' + key;
+  }
   
   const body = {
     model,
@@ -2770,6 +2889,7 @@ async function groqCall(prompt, systemPrompt = '') {
 
 // ─────────────────────────── AI LESSON GENERATOR ───────────────────────────
 async function generateLesson() {
+  if(!isStaff()) { showToast('⛔ Only teachers and admins can generate lessons.', 'error'); return; }
   const topic = document.getElementById('genTopic').value.trim();
   if(!topic) { showToast('Please enter a topic!','error'); return; }
   const grade = document.getElementById('genGrade').value;
@@ -2889,60 +3009,24 @@ function saveLibrary() {
 
 async function syncToCloudflareWorker() {
   try {
-    const response = await fetch('https://rfree-academy.pages.dev/api/lessons', {
+    const token = localStorage.getItem('rfree_token');
+    const response = await fetch(apiUrl('/api/lessons'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
       body: JSON.stringify(state.lessons)
     });
     const data = await response.json();
-    if(data.success) {
-      console.log('✅ Synced to Cloudflare Worker:', data.message);
+    if(data.success || data.ok) {
+      console.log('✅ Synced to Worker:', data.message);
     } else {
       console.warn('⚠️ Worker sync issue:', data.error);
     }
   } catch(e) {
     console.warn('⚠️ Cloudflare Worker sync error (non-blocking):', e.message);
   }
-}
-
-// ─────────────────────────── AUTO-SAVE ───────────────────────────
-let autoSaveTimeout;
-function autoSaveLesson() {
-  clearTimeout(autoSaveTimeout);
-  autoSaveTimeout = setTimeout(() => {
-    const title = document.getElementById('lessonTitleInput')?.value.trim() || 'Untitled';
-    const subject = document.getElementById('lessonSubject')?.value || 'other';
-    const teacher = document.getElementById('teacherName')?.value || 'You';
-    const grade = document.getElementById('studioGrade')?.value || '6-8';
-    const notes = document.getElementById('lessonNotes')?.value || '';
-    const videoUrl = document.getElementById('videoUrl')?.value || '';
-    
-    if(!title || !notes) return; // Don't save empty lessons
-    
-    // Check if lesson already exists in draft (by title)
-    const existingIdx = state.lessons.findIndex(l => l.title === title && l.type === 'draft');
-    const lesson = {
-      id: existingIdx >= 0 ? state.lessons[existingIdx].id : Date.now(),
-      title, subject, teacher, grade,
-      notes, outline: notes,
-      videoUrl,
-      type: 'draft',
-      emoji: subjectEmojis[subject] || '✏️',
-      date: new Date().toLocaleDateString(),
-      transcript: '',
-      tags: [subject],
-      completed: false
-    };
-    
-    if(existingIdx >= 0) {
-      state.lessons[existingIdx] = lesson;
-    } else {
-      state.lessons.unshift(lesson);
-    }
-    
-    saveLibrary();
-    console.log('✅ Draft saved:', title);
-  }, 1000); // Save 1 second after user stops typing
 }
 
 function updateStatCounter() {
@@ -2977,12 +3061,12 @@ function renderLibrary() {
         <div class="play-btn">▶</div>
       </div>
       <div class="lesson-body">
-        <div class="lesson-subject">${l.subject?.toUpperCase() || 'GENERAL'} ${l.grade ? '· ' + l.grade : ''}</div>
-        <div class="lesson-title">${l.title}</div>
+        <div class="lesson-subject">${escHtml(l.subject?.toUpperCase() || 'GENERAL')} ${l.grade ? '· ' + escHtml(l.grade) : ''}</div>
+        <div class="lesson-title">${escHtml(l.title)}</div>
         <div class="lesson-meta">
-          <span>👤 ${l.teacher || 'Unknown'}</span>
-          <span>📅 ${l.date}</span>
-          ${l.duration ? `<span>⏱️ ${l.duration}</span>` : ''}
+          <span>👤 ${escHtml(l.teacher || 'Unknown')}</span>
+          <span>📅 ${escHtml(l.date)}</span>
+          ${l.duration ? `<span>⏱️ ${escHtml(l.duration)}</span>` : ''}
         </div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
           ${l.type==='outline' ? '<span class="tag">✨ AI Outline</span>' : ''}
@@ -3000,34 +3084,21 @@ function openLesson(id) {
   const l = state.lessons.find(x => x.id === id);
   if(!l) return;
   const el = document.getElementById('lessonModalContent');
-  const completedClass = l.completed ? 'text-gold' : '';
   el.innerHTML = `
-    <h2 style="font-family:'Arial Black',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:0.5rem">${l.title}</h2>
+    <h2 style="font-family:'Arial Black',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:0.5rem">${escHtml(l.title)}</h2>
     <div class="lesson-meta mb-2">
-      <span class="tag">${l.subject?.toUpperCase()||'GENERAL'}</span>
-      ${l.grade ? `<span class="tag">${l.grade}</span>` : ''}
-      ${l.duration ? `<span class="tag">⏱️ ${l.duration}</span>` : ''}
-      ${l.completed ? `<span class="tag" style="background:rgba(34,197,94,0.2);color:var(--mint)">✅ Completed</span>` : ''}
+      <span class="tag">${escHtml(l.subject?.toUpperCase()||'GENERAL')}</span>
+      ${l.grade ? `<span class="tag">${escHtml(l.grade)}</span>` : ''}
+      ${l.duration ? `<span class="tag">⏱️ ${escHtml(l.duration)}</span>` : ''}
     </div>
-    ${l.videoUrl ? `<div style="margin-bottom:1rem;border-radius:var(--radius);overflow:hidden"><video controls style="width:100%;max-height:300px;background:#000"><source src="${l.videoUrl}"></video></div>` : ''}
-    ${l.outline ? `<div style="font-family:'DM Mono',monospace;font-size:0.8rem;background:rgba(26,10,46,0.8);border:1px solid rgba(168,85,247,0.2);border-radius:var(--radius);padding:1rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;color:var(--purple-200);margin-bottom:1rem">${l.outline}</div>` : ''}
-    ${l.transcript ? `<div><div style="font-weight:600;font-size:0.82rem;color:var(--purple-300);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem">Transcript</div><div style="font-size:0.85rem;line-height:1.8;color:var(--purple-100);max-height:200px;overflow-y:auto">${l.transcript}</div></div>` : ''}
-    ${l.notes ? `<div class="mt-2"><div style="font-size:0.82rem;color:var(--purple-300)">Notes</div><div style="font-size:0.85rem;margin-top:4px">${l.notes}</div></div>` : ''}
+    ${l.outline ? `<div style="font-family:'DM Mono',monospace;font-size:0.8rem;background:rgba(26,10,46,0.8);border:1px solid rgba(168,85,247,0.2);border-radius:var(--radius);padding:1rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;color:var(--purple-200);margin-bottom:1rem">${escHtml(l.outline)}</div>` : ''}
+    ${l.transcript ? `<div><div style="font-weight:600;font-size:0.82rem;color:var(--purple-300);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.5rem">Transcript</div><div style="font-size:0.85rem;line-height:1.8;color:var(--purple-100);max-height:200px;overflow-y:auto">${escHtml(l.transcript)}</div></div>` : ''}
+    ${l.notes ? `<div class="mt-2"><div style="font-size:0.82rem;color:var(--purple-300)">Notes</div><div style="font-size:0.85rem;margin-top:4px">${escHtml(l.notes)}</div></div>` : ''}
     <div class="flex gap-1 mt-2" style="flex-wrap:wrap">
-      <button class="btn btn-primary btn-sm" onclick="markLessonComplete(${l.id})">${l.completed ? '✅ Completed' : '📝 Mark Complete'}</button>
       <button class="btn btn-ghost btn-sm" onclick="deleteLesson(${l.id})">🗑️ Delete</button>
     </div>
   `;
   showModal('lessonModal');
-}
-
-function markLessonComplete(id) {
-  const lesson = state.lessons.find(x => x.id === id);
-  if(!lesson) return;
-  lesson.completed = !lesson.completed;
-  saveLibrary();
-  openLesson(id); // Refresh the modal
-  showToast(lesson.completed ? '✅ Marked complete!' : '❌ Unmarked');
 }
 
 function deleteLesson(id) {
@@ -3043,41 +3114,14 @@ function clearLibrary() {
   if(!confirm('⚠️ Delete ALL lessons? This cannot be undone!')) return;
   if(!confirm('Really? This will permanently delete all lessons in your library.')) return;
   state.lessons = [];
-  saveLibrary();
+  localStorage.setItem('rfree_lessons', JSON.stringify([]));
+  localStorage.setItem('rfree_lesson_done', JSON.stringify({}));
+  updateStatCounter();
   renderLibrary();
   showToast('✅ Library cleared!');
 }
 
 // ─────────────────────────── EXPORT & GITHUB SYNC ───────────────────────────
-function importLessonsJSON() {
-  document.getElementById('importFile').click();
-}
-
-function handleImportFile(fileInput) {
-  const file = fileInput.files[0];
-  if(!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if(!data.lessons || !Array.isArray(data.lessons)) {
-        showToast('❌ Invalid file format! Must contain lessons array.');
-        return;
-      }
-      
-      state.lessons = [...state.lessons, ...data.lessons];
-      saveLibrary();
-      renderLibrary();
-      showToast(`✅ Imported ${data.lessons.length} lessons!`);
-      fileInput.value = ''; // Reset file input
-    } catch(err) {
-      showToast('❌ Error parsing file: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-}
-
 function exportLessonsJSON() {
   if(state.lessons.length === 0) {
     showToast('❌ No lessons to export!');
@@ -3101,81 +3145,6 @@ function exportLessonsJSON() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
   showToast('✅ Lessons exported! Downloaded to your computer.');
-}
-
-async function syncLessonsToGitHub() {
-  if(state.lessons.length === 0) {
-    showToast('❌ No lessons to sync!');
-    return;
-  }
-
-  showToast('🔄 Starting sync to GitHub...');
-  
-  // Group lessons by tag/course
-  const grouped = {};
-  state.lessons.forEach(lesson => {
-    const course = lesson.tags && lesson.tags[0] ? lesson.tags[0] : 'uncategorized';
-    if(!grouped[course]) grouped[course] = [];
-    grouped[course].push(lesson);
-  });
-
-  // Prepare files to sync
-  const files = [];
-  let lessonCount = 0;
-  
-  for(const [course, lessons] of Object.entries(grouped)) {
-    lessons.forEach((lesson, index) => {
-      const lessonNum = index + 1;
-      const filename = `lesson-${lessonNum}.md`;
-      const coursePath = course.replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
-      const repoPath = `lessons/${coursePath}/${filename}`;
-      
-      // Create markdown content
-      const content = `# ${lesson.title}
-
-**Course:** ${course}  
-**Lesson:** ${lessonNum}  
-**Teacher:** ${lesson.teacher || 'You'}  
-**Date:** ${lesson.date}  
-**Duration:** ${lesson.duration || 'N/A'}  
-**Grade:** ${lesson.grade || 'N/A'}  
-
-## Outline
-
-\`\`\`
-${lesson.outline || 'No outline provided'}
-\`\`\`
-
----
-Generated on RFree Academy
-`;
-
-      files.push({ repoPath, content });
-      lessonCount++;
-    });
-  }
-
-  // Send to server/API to push to GitHub
-  try {
-    const response = await fetch('/.netlify/functions/github-sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files, grouped })
-    });
-
-    if(!response.ok) {
-      // Fallback: Show manual instructions
-      showToast('⚠️ Auto-sync unavailable. Open GitHub manually to add these files.');
-      console.log('Files ready for manual sync:', files);
-      return;
-    }
-
-    const result = await response.json();
-    showToast(`✅ Synced ${lessonCount} lessons to GitHub!`);
-  } catch(err) {
-    console.error('Sync error:', err);
-    showToast('⚠️ Could not sync automatically. Check browser console.');
-  }
 }
 
 // ─────────────────────────── TRANSCRIPT ───────────────────────────
@@ -3353,14 +3322,16 @@ function initCanvas() {
   canvas = document.getElementById('studioCanvas');
   if(!canvas) return;
   const wrapper = document.getElementById('studioWrapper');
-  canvas.width  = wrapper.clientWidth  || 960;
-  canvas.height = wrapper.clientHeight || 560;
+  // Lock canvas to 16:9 so camera never appears squashed
+  const canvasW = wrapper.clientWidth || 960;
+  canvas.width  = canvasW;
+  canvas.height = Math.round(canvasW * (9 / 16));
   ctx = canvas.getContext('2d');
 
   // Draw layer (transparent offscreen canvas)
   drawCanvas = document.createElement('canvas');
   drawCanvas.width  = canvas.width;
-  drawCanvas.height = canvas.height;
+  drawCanvas.height = canvas.height; // inherits 16:9
   drawCtx = drawCanvas.getContext('2d');
 
   // Screen annotation layer
@@ -3600,7 +3571,7 @@ function setStudioMode(mode) {
 async function toggleWebcam(on) {
   if(on) {
     try {
-      webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user', width:640, height:480 }, audio: false });
+      webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user', width:{ ideal:1280 }, height:{ ideal:720 }, aspectRatio:{ ideal:16/9 } }, audio: false });
       webcamVideoEl = document.getElementById('webcamVideo');
       webcamVideoEl.srcObject = webcamStream;
       await webcamVideoEl.play();
@@ -3976,6 +3947,25 @@ function setFaceShape(shape) {
 })();
 
 // ── RECORDING ─────────────────────────────────────────────────
+// Detect best supported format: prefer MP4, fall back to WebM
+function getBestMimeType() {
+  const candidates = [
+    'video/mp4;codecs=avc1,mp4a.40.2',
+    'video/mp4;codecs=avc1',
+    'video/mp4',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+  ];
+  return candidates.find(t => {
+    try { return MediaRecorder.isTypeSupported(t); } catch(e) { return false; }
+  }) || '';
+}
+
+function mimeToExt(mime) {
+  return mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+}
+
 function startRecording() {
   state.recording = true;
   state.recordingSeconds = 0;
@@ -3984,16 +3974,22 @@ function startRecording() {
   document.getElementById('stopRecBtn').style.display  = 'block';
   document.getElementById('pauseRecBtn').style.display = 'block';
 
-  // Try to record the composite canvas
+  // Try to record the composite canvas, prefer MP4
   try {
     const stream = canvas.captureStream(30);
     if(micStream) micStream.getAudioTracks().forEach(t => stream.addTrack(t));
-    state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+    const mimeType = getBestMimeType();
+    state.recordingMime = mimeType;
+    const opts = mimeType ? { mimeType } : {};
+    state.mediaRecorder = new MediaRecorder(stream, opts);
     state.recordedChunks = [];
     state.mediaRecorder.ondataavailable = e => { if(e.data.size>0) state.recordedChunks.push(e.data); };
     state.mediaRecorder.start(1000);
+    const fmt = mimeType.startsWith('video/mp4') ? 'MP4' : 'WebM';
+    showToast(`🔴 Recording started! Format: ${fmt}`, 'success');
   } catch(e) {
     console.warn('MediaRecorder not available:', e.message);
+    showToast('🔴 Recording started!');
   }
 
   state.recordingTimer = setInterval(() => {
@@ -4004,8 +4000,6 @@ function startRecording() {
       document.getElementById('timerDisplay').textContent = m+':'+s;
     }
   }, 1000);
-
-  showToast('🔴 Recording started!');
 }
 
 function pauseRecording() {
@@ -4035,12 +4029,21 @@ function stopRecording() {
   // Finalize MediaRecorder and offer download
   if(state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
     state.mediaRecorder.onstop = () => {
-      const blob = new Blob(state.recordedChunks, {type:'video/webm'});
+      const mime = state.recordingMime || 'video/webm';
+      const ext  = mimeToExt(mime);
+      const blob = new Blob(state.recordedChunks, { type: mime });
       const url  = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = title.replace(/\s+/g,'_') + '.webm'; a.click();
-      showToast(`📥 "${title}" downloading as WebM!`, 'success');
+      a.href = url;
+      a.download = title.replace(/\s+/g,'_') + '.' + ext;
+      a.click();
+      showToast(`📥 "${title}" downloading as ${ext.toUpperCase()}!`, 'success');
       URL.revokeObjectURL(url);
+
+      // If we recorded WebM, offer a note about MP4 compatibility
+      if(ext === 'webm') {
+        setTimeout(() => showToast('💡 Tip: WebM plays in Chrome & Firefox. For iOS/MP4 use VLC or Handbrake to convert.'), 3000);
+      }
     };
     state.mediaRecorder.stop();
   }
@@ -4131,6 +4134,14 @@ function init() {
     const el = document.getElementById('cfPagesUrl') || document.getElementById('cfWorkerUrl');
     if(el) el.value = savedCfUrl;
     state.cfUrl = savedCfUrl;
+  }
+
+  // Load saved GitHub repo
+  const savedGithubRepo = localStorage.getItem('rfree_github_repo');
+  if(savedGithubRepo) {
+    const el = document.getElementById('githubRepo');
+    if(el) el.value = savedGithubRepo;
+    state.githubRepo = savedGithubRepo;
   }
 
   // Load saved profile
@@ -4234,7 +4245,7 @@ window.addEventListener('resize', () => {
     // Resize the main composite canvas
     const wrapper = document.getElementById('studioWrapper');
     if(!wrapper) return;
-    const newW = wrapper.clientWidth, newH = wrapper.clientHeight;
+    const newW = wrapper.clientWidth, newH = Math.round(newW * (9 / 16));
     if(Math.abs(canvas.width - newW) < 10 && Math.abs(canvas.height - newH) < 10) return;
     // Save draw layer
     const saved = drawCtx ? drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height) : null;
@@ -4416,52 +4427,9 @@ const trackData = {
     ]},
 };
 
-function openTrack(id) {
-  const track = trackData[id];
-  if(!track) return;
-  const progress = state.trackProgress?.[id] || 0;
-
-  // Find any library lessons that relate to this track (by tag or subject match)
-  const trackKeywords = (track.name || '').toLowerCase().split(/\W+/).filter(w => w.length > 3);
-  const myLessons = state.lessons.filter(l => {
-    const hay = ((l.title || '') + ' ' + (l.subject || '') + ' ' + (l.tags || []).join(' ')).toLowerCase();
-    return trackKeywords.some(kw => hay.includes(kw));
-  });
-
-  const el = document.getElementById('lessonModalContent');
-  el.innerHTML = `
-    <div style="text-align:center;margin-bottom:1.5rem">
-      <div style="font-size:3rem;margin-bottom:0.5rem">${track.emoji}</div>
-      <h2 style="font-family:'Arial Black',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.5rem">${track.name}</h2>
-      <div style="color:var(--purple-300);font-size:0.85rem">${track.lessons} lessons · Certificate upon completion · Community Impact Project</div>
-    </div>
-    <div class="progress-bar" style="margin-bottom:0.5rem">
-      <div class="progress-fill" style="width:${Math.round(progress/track.lessons*100)}%"></div>
-    </div>
-    <div style="font-size:0.78rem;color:var(--purple-400);text-align:right;margin-bottom:1.5rem">${progress} of ${track.lessons} lessons complete</div>
-
-    ${myLessons.length > 0 ? `
-      <div style="font-family:'Arial Black',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--mint);margin-bottom:0.5rem">📚 Your Lessons in This Track</div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem">
-        ${myLessons.slice(0,4).map(l => `
-          <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 14px;font-size:0.85rem;cursor:pointer" onclick="closeModal('lessonModal');showPage('library')">
-            <span style="font-size:1.1rem">${l.emoji||'📚'}</span>
-            <span style="flex:1;font-weight:600">${l.title}</span>
-            <span style="color:var(--mint);font-size:0.75rem">View →</span>
-          </div>`).join('')}
-      </div>` : `
-      <div style="background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.25rem;text-align:center">
-        <div style="font-size:1.5rem;margin-bottom:0.4rem">📭</div>
-        <div style="font-size:0.85rem;color:var(--purple-300);margin-bottom:0.75rem">No lessons created for this track yet.</div>
-        <button class="btn btn-primary btn-sm" onclick="closeModal('lessonModal');showPage('generator')">✨ Generate a Lesson Now</button>
-      </div>`
-    }
-
-  `;
-  showModal('lessonModal');
-}
 
 function openTrack(id) {
+  
   const track = trackData[id];
   if(!track) return;
   const total = track.lessons.length;
@@ -4515,14 +4483,16 @@ function openTrack(id) {
     <!-- LESSON LIST -->
     <div style="font-family:'Arial Black',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple-400);margin-bottom:0.6rem">Lessons</div>
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem">
-      ${track.lessons.map((lesson, i) => {
+      ${track.lessons.map((lessonBase, i) => {
+        const lesson = getLessonData(id, i);
         const isDone = done.includes(i);
+        const hasEdit = !!(getLessonCustomData()[`${id}:${i}`]);
         return `<div style="display:flex;align-items:center;gap:10px;background:rgba(26,10,46,0.6);border:1px solid rgba(168,85,247,${isDone?'0.4':'0.15'});border-radius:8px;padding:10px 14px;cursor:pointer;transition:border-color 0.2s" onclick="viewLesson('${id}',${i})">
           <span style="color:${isDone?'var(--mint)':'var(--purple-400)'};font-size:1rem;flex-shrink:0">${isDone?'✅':'○'}</span>
           <div style="flex:1;min-width:0">
-            <div style="font-size:0.83rem;font-weight:600;color:${isDone?'var(--mint)':'var(--white)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lesson ${i+1}: ${lesson.title}</div>
+            <div style="font-size:0.83rem;font-weight:600;color:${isDone?'var(--mint)':'var(--white)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lesson ${i+1}: ${escHtml(lesson.title)}${hasEdit?' ✎':''}</div>
           </div>
-          <span style="color:var(--purple-400);font-size:0.8rem;flex-shrink:0">${isDone?'Done':'View →'}</span>
+          <span style="color:${isDone?'var(--mint)':'var(--purple-400)'};font-size:0.8rem;flex-shrink:0">${isDone ? (isStaff() ? '✅ Done · undo?' : '✅ Done') : (isStaff() ? 'Edit/View →' : 'View →')}</span>
         </div>`;
       }).join('')}
     </div>
@@ -4531,7 +4501,7 @@ function openTrack(id) {
     <div style="font-family:'Arial Black',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--mint);margin-bottom:0.6rem">📚 Your Library Lessons</div>
     <div style="display:flex;flex-direction:column;gap:6px">
       ${myLessons.slice(0,3).map(l => `
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:0.83rem" onclick="closeModal('lessonModal');showPage('library')">
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:0.83rem" onclick="closeModal('lessonModal');openLibraryLesson('${l.id}')">
         <span>${l.emoji||'📚'}</span><span style="flex:1;font-weight:600">${l.title}</span><span style="color:var(--mint);font-size:0.75rem">Open →</span>
       </div>`).join('')}
     </div>` : ''}
@@ -4539,37 +4509,201 @@ function openTrack(id) {
   showModal('lessonModal');
 }
 
+// ── LESSON CUSTOM DATA STORAGE ──────────────────────────────────
+// Persists teacher edits to lesson titles & key topics across sessions.
+function getLessonCustomData() {
+  try { return JSON.parse(localStorage.getItem('rfree_track_edits') || '{}'); } catch(e) { return {}; }
+}
+function saveLessonCustomData(data) {
+  localStorage.setItem('rfree_track_edits', JSON.stringify(data));
+}
+function getLessonData(trackId, index) {
+  const custom = getLessonCustomData();
+  const key = `${trackId}:${index}`;
+  const base = trackData[trackId]?.lessons[index] || { title:'', points:[] };
+  return custom[key] ? { ...base, ...custom[key] } : { ...base };
+}
+
+// ── VIEW MODE ────────────────────────────────────────────────────
 function viewLesson(trackId, index) {
+  const libraryLesson = state.lessons.find(l =>
+    l.trackId === trackId && l.lessonIndex === index
+  );
   const track = trackData[trackId];
   if(!track) return;
-  const lesson = track.lessons[index];
+  const lesson = getLessonData(trackId, index);   // uses edits if any
   const done = (state.lessonDone[trackId] || []).includes(index);
+
   const el = document.getElementById('lessonModalContent');
   el.innerHTML = `
-    <button onclick="openTrack('${trackId}')" style="background:none;border:none;color:var(--purple-300);cursor:pointer;font-size:0.82rem;margin-bottom:1rem;display:flex;align-items:center;gap:4px;padding:0">← Back to ${track.name}</button>
+    <button onclick="openTrack('${trackId}')" style="background:none;border:none;color:var(--purple-300);cursor:pointer;font-size:0.82rem;margin-bottom:1rem;display:flex;align-items:center;gap:4px;padding:0">← Back to ${escHtml(track.name)}</button>
+
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem">
       <span style="font-size:1.5rem">${track.emoji}</span>
       <div style="font-size:0.72rem;color:var(--purple-400);text-transform:uppercase;letter-spacing:1px">Lesson ${index+1} of ${track.lessons.length}</div>
+      ${isStaff() ? `<button class="btn btn-ghost btn-sm" onclick="editLesson('${trackId}',${index})" style="margin-left:auto;font-size:0.75rem">✏️ Edit Lesson</button>` : ''}
     </div>
-    <h2 style="font-family:'Arial Black',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:1rem;line-height:1.3">${lesson.title}</h2>
 
-    <!-- Outline points -->
+    <h2 style="font-family:'Arial Black',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:1rem;line-height:1.3">${escHtml(lesson.title)}</h2>
+
+    <!-- Key Topics -->
     <div style="background:rgba(26,10,46,0.6);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:1rem;margin-bottom:1.25rem">
       <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple-400);margin-bottom:0.6rem">Key Topics</div>
       ${lesson.points.map(p => `
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:0.85rem;color:var(--purple-100)">
-          <span style="color:var(--gold);flex-shrink:0;margin-top:1px">•</span>${p}
+          <span style="color:var(--gold);flex-shrink:0;margin-top:1px">•</span>${escHtml(p)}
         </div>`).join('')}
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${done
-        ? `<div style="display:flex;align-items:center;gap:6px;color:var(--mint);font-size:0.88rem;font-weight:600"><span>✅</span> Lesson Complete</div>`
-        : `<button class="btn btn-primary" onclick="markLessonDone('${trackId}',${index})">✅ Mark Complete</button>`
+        ? (isStaff()
+            ? `<button class="btn btn-mint" onclick="toggleLessonDone('${trackId}',${index})" title="Click to uncheck" style="display:flex;align-items:center;gap:6px">✅ Done <span style="font-size:0.75rem;opacity:0.7">(click to undo)</span></button>`
+            : `<span style="display:flex;align-items:center;gap:6px;color:var(--mint);font-size:0.88rem;font-weight:600">✅ Lesson Complete</span>`)
+        : `<button class="btn btn-primary" onclick="toggleLessonDone('${trackId}',${index})">✅ Mark Complete</button>`
       }
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('lessonModal');showPage('generator')" style="font-size:0.8rem">✨ Generate Full Lesson</button>
+      ${libraryLesson
+        ? `<button class="btn btn-gold" onclick="closeModal('lessonModal');openLibraryLesson(${libraryLesson.id})">▶ Watch Lesson</button>`
+        : (isStaff() ? `<button class="btn btn-ghost" onclick="closeModal('lessonModal');showPage('generator')">⚠️ No video yet — add one</button>` : '')
+      }
+      ${isStaff() ? `<button class="btn btn-ghost btn-sm" onclick="closeModal('lessonModal');showPage('generator')" style="font-size:0.8rem">✨ Generate Full Lesson</button>` : ''}
     </div>
   `;
+}
+
+// ── EDIT MODE (Teachers & Admins only) ──────────────────────────
+function editLesson(trackId, index) {
+  if(!isStaff()) { showToast('🔒 Only teachers and admins can edit lessons.','error'); return; }
+  const track = trackData[trackId];
+  if(!track) return;
+  const lesson = getLessonData(trackId, index);
+
+  const el = document.getElementById('lessonModalContent');
+  el.innerHTML = `
+    <button onclick="viewLesson('${trackId}',${index})" style="background:none;border:none;color:var(--purple-300);cursor:pointer;font-size:0.82rem;margin-bottom:1rem;display:flex;align-items:center;gap:4px;padding:0">← Cancel</button>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem">
+      <span style="font-size:1.5rem">${track.emoji}</span>
+      <div style="font-family:'Arial Black',sans-serif;font-size:0.9rem;font-weight:700;color:var(--gold)">Edit Lesson ${index+1}</div>
+      <span style="font-size:0.72rem;color:var(--purple-400);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);padding:2px 8px;border-radius:100px">Teacher/Admin only</span>
+    </div>
+
+    <!-- Lesson Title -->
+    <div class="form-group" style="margin-bottom:1.25rem">
+      <label class="form-label">Lesson Title</label>
+      <input class="form-input" id="editLessonTitle" value="${escHtml(lesson.title)}"
+             placeholder="Lesson title…" style="font-size:0.95rem;font-weight:600" />
+    </div>
+
+    <!-- Key Topics -->
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+        Key Topics
+        <button class="btn btn-ghost btn-sm" onclick="addTopicRow()" style="font-size:0.75rem">+ Add Topic</button>
+      </label>
+      <div id="editTopicsContainer" style="display:flex;flex-direction:column;gap:8px">
+        ${lesson.points.map((p, i) => `
+          <div style="display:flex;gap:6px;align-items:center" id="topicRow${i}">
+            <span style="color:var(--gold);font-size:1rem;flex-shrink:0">•</span>
+            <input class="form-input topic-input" value="${escHtml(p)}"
+                   placeholder="Key topic…" style="flex:1;font-size:0.88rem"
+                   data-topic-index="${i}" />
+            <button onclick="removeTopicRow(${i})" style="background:none;border:none;color:var(--purple-400);cursor:pointer;font-size:1rem;padding:4px;flex-shrink:0" title="Remove topic">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Action bar -->
+    <div style="display:flex;gap:8px;margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(168,85,247,0.15)">
+      <button class="btn btn-primary" onclick="saveLessonEdits('${trackId}',${index})" style="flex:1">💾 Save Changes</button>
+      <button class="btn btn-danger btn-sm" onclick="resetLessonEdits('${trackId}',${index})" title="Reset to original content">↩ Reset to Original</button>
+    </div>
+    <div style="margin-top:0.6rem;font-size:0.75rem;color:var(--purple-400)">
+      Changes are saved locally and visible to all users on this device. Use "Reset to Original" to undo all edits.
+    </div>
+  `;
+}
+
+// ── TOPIC ROW HELPERS ────────────────────────────────────────────
+let _editTopicCount = 0;   // increments for unique IDs
+function addTopicRow() {
+  const container = document.getElementById('editTopicsContainer');
+  if(!container) return;
+  const id = 'topicRow_new_' + (++_editTopicCount);
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;align-items:center';
+  div.id = id;
+  div.innerHTML = `
+    <span style="color:var(--gold);font-size:1rem;flex-shrink:0">•</span>
+    <input class="form-input topic-input" placeholder="New key topic…"
+           style="flex:1;font-size:0.88rem" />
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--purple-400);cursor:pointer;font-size:1rem;padding:4px;flex-shrink:0" title="Remove">✕</button>
+  `;
+  container.appendChild(div);
+  div.querySelector('input')?.focus();
+}
+
+function removeTopicRow(i) {
+  document.getElementById('topicRow' + i)?.remove();
+}
+
+// ── SAVE / RESET ─────────────────────────────────────────────────
+function saveLessonEdits(trackId, index) {
+  if(!isStaff()) { showToast('🔒 Not authorised.','error'); return; }
+
+  const titleEl = document.getElementById('editLessonTitle');
+  const newTitle = titleEl?.value.trim();
+  if(!newTitle) { showToast('Lesson title cannot be empty.','error'); return; }
+
+  const inputs = document.querySelectorAll('#editTopicsContainer .topic-input');
+  const newPoints = Array.from(inputs)
+    .map(inp => inp.value.trim())
+    .filter(v => v.length > 0);
+
+  if(newPoints.length === 0) { showToast('Add at least one key topic.','error'); return; }
+
+  // Persist to localStorage
+  const custom = getLessonCustomData();
+  const key = `${trackId}:${index}`;
+  custom[key] = { title: newTitle, points: newPoints };
+  saveLessonCustomData(custom);
+
+  showToast('✅ Lesson updated and saved!', 'success');
+  viewLesson(trackId, index);   // return to view mode
+}
+
+function resetLessonEdits(trackId, index) {
+  if(!isStaff()) return;
+  if(!confirm('Reset this lesson to its original content? All your edits will be removed.')) return;
+  const custom = getLessonCustomData();
+  delete custom[`${trackId}:${index}`];
+  saveLessonCustomData(custom);
+  showToast('↩ Lesson reset to original.', 'success');
+  viewLesson(trackId, index);
+}
+
+
+function toggleLessonDone(trackId, index) {
+  if (!state.lessonDone[trackId]) state.lessonDone[trackId] = [];
+  const idx = state.lessonDone[trackId].indexOf(index);
+  if (idx === -1) {
+    // Anyone logged in can mark complete
+    state.lessonDone[trackId].push(index);
+    showToast(`✅ Lesson ${index+1} marked complete!`);
+  } else {
+    // Only admin/teacher can uncheck
+    if (!isStaff()) {
+      showToast('🔒 Only admins and teachers can uncheck completed lessons.', 'error');
+      return;
+    }
+    state.lessonDone[trackId].splice(idx, 1);
+    showToast(`↩️ Lesson ${index+1} unmarked.`, 'error');
+  }
+  if (!state.trackProgress) state.trackProgress = {};
+  state.trackProgress[trackId] = state.lessonDone[trackId].length;
+  localStorage.setItem("rfree_lesson_done", JSON.stringify(state.lessonDone));
+  localStorage.setItem("rfree_track_progress", JSON.stringify(state.trackProgress));
+  viewLesson(trackId, index);
 }
 
 function markLessonDone(trackId, index) {
@@ -4627,6 +4761,11 @@ function submitCapstone(trackId) {
     </div>
     <button class="btn btn-gold w-full" onclick="confirmCapstone('${trackId}')">✅ Submit Capstone</button>
   `;
+}
+function openLibraryLesson(id) {
+  const lesson = state.lessons.find(l => l.id === id);
+  if (!lesson) return;
+  openLesson(id);
 }
 
 function confirmCapstone(trackId) {
@@ -4782,6 +4921,14 @@ async function downloadCertificate() {
   }
 }
 
+function saveGithubRepo() {
+  const val = document.getElementById('githubRepo')?.value.trim();
+  if(!val) { showToast('Please enter your repo e.g. ImpactLearning/rfree-academy', 'error'); return; }
+  state.githubRepo = val;
+  localStorage.setItem('rfree_github_repo', val);
+  showToast('✅ GitHub repo saved! Lesson links will now point to your repo.', 'success');
+}
+
 // Stubs for any residual old references
 function applyPointerStyle(){}
 function setGlobalPointerColor(){}
@@ -4850,34 +4997,176 @@ function submitOrgApplication() {
   showToast('📧 Opening your email app to submit your organization!', 'success');
 }
 
-function createAccount() {
+// ── AUTH MODE TOGGLE ──────────────────────────────────────────────────────────
+function openSignIn() {
+  _authMode = 'login';
+  document.getElementById('loginModalTitle').textContent    = 'Sign In';
+  document.getElementById('loginModalSubtitle').textContent = 'Welcome back! Learning takes one step.';
+  document.getElementById('submitBtn').textContent          = 'Sign In';
+  document.getElementById('toggleAuthBtn').textContent      = 'Create Account Instead';
+  document.getElementById('backendUrlGroup').style.display  = 'none';
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function openJoinFree() {
+  _authMode = 'register';
+  document.getElementById('loginModalTitle').textContent    = 'Join Free 🎉';
+  document.getElementById('loginModalSubtitle').textContent = 'Your journey starts here — free lessons, real impact, zero excuses.';
+  document.getElementById('submitBtn').textContent          = 'Create Free Account';
+  document.getElementById('toggleAuthBtn').textContent      = 'Sign In Instead';
+  document.getElementById('backendUrlGroup').style.display  = 'none';
+  document.getElementById('loginModal').classList.add('open');
+}
+
+let _authMode = 'login'; // 'register' | 'login'
+
+function toggleAuthMode() {
+  _authMode = _authMode === 'register' ? 'login' : 'register';
+  const isLogin = _authMode === 'login';
+  document.getElementById('loginModalTitle').textContent      = isLogin ? 'Sign In' : 'Join Free 🎉';
+  document.getElementById('loginModalSubtitle').textContent   = isLogin ? 'Welcome back! Learning takes one step.' : 'Your journey starts here — free lessons, real impact, zero excuses.';
+  document.getElementById('submitBtn').textContent            = isLogin ? 'Sign In' : 'Create Free Account';
+  document.getElementById('toggleAuthBtn').textContent        = isLogin ? 'Create Account Instead' : 'Sign In Instead';
+  document.getElementById('backendUrlGroup').style.display    = 'none'; // lesson manager only
+}
+
+function handleAuthSubmit() {
+  if (_authMode === 'login') signIn();
+  else createAccount();
+}
+
+// Reset modal to register mode when opened
+const _origShowModal = window.showModal;
+window.showModal = function(id) {
+  if (id === 'loginModal') {
+    _authMode = 'login';
+    document.getElementById('loginModalTitle').textContent    = 'Sign In';
+    document.getElementById('loginModalSubtitle').textContent = 'Welcome back! Learning takes one step.';
+    document.getElementById('submitBtn').textContent          = 'Sign In';
+    document.getElementById('toggleAuthBtn').textContent      = 'Create Account Instead';
+    document.getElementById('backendUrlGroup').style.display  = 'none';
+  }
+  if (_origShowModal) _origShowModal(id);
+  else document.getElementById(id)?.classList.add('open');
+};
+
+async function signIn() {
+  const modal = document.getElementById('loginModal');
+  const emailEl = modal.querySelector('input[type="email"]');
+  const passEl  = modal.querySelector('input[type="password"]');
+
+  const email = emailEl?.value.trim();
+  const password = passEl?.value;
+
+  if (!email) {
+    showToast('Please enter your email!', 'error');
+    return;
+  }
+
+  if (!password) {
+    showToast('Please enter a password!', 'error');
+    return;
+  }
+
+  try {
+    saveApiBasePreference();
+
+    const res = await fetch(apiUrl('/api/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      showToast('❌ ' + (data.error || 'Login failed. Check your email and password.'), 'error');
+      return;
+    }
+
+    // ✅ STORE USER DATA
+    localStorage.setItem('rfree_token', data.token);
+    localStorage.setItem('rfree_role', data.role);
+    localStorage.setItem('rfree_userId', data.userId);
+    localStorage.setItem('rfree_email', email);
+    localStorage.setItem('rfree_logged_in', '1');
+
+    closeModal('loginModal');
+
+    // 👑 ADMIN LOGIC
+    if (data.role === 'admin') {
+      showToast('👑 Welcome back, Admin!', 'success');
+      showAdminButton();
+
+      setTimeout(() => {
+        window.location.href = 'admin-dashboard.html';
+      }, 800);
+
+    } else {
+      showToast('👋 Welcome back!', 'success');
+      const lb = document.getElementById('logoutBtn');
+      if(lb) lb.style.display = 'inline-flex';
+    }
+
+    // Show/hide staff-only tabs based on role
+    const isStaffLogin = (data.role === 'admin' || data.role === 'teacher');
+    if (isStaffLogin) {
+      document.body.classList.add('is-staff');
+    } else {
+      document.body.classList.remove('is-staff');
+    }
+
+  } catch (e) {
+    showToast('❌ Could not connect to server.', 'error');
+  }
+}
+
+
+// ─────────────────────────── CREATE ACCOUNT ───────────────────────────
+async function createAccount() {
   const modal = document.getElementById('loginModal');
   const emailEl = modal.querySelector('input[type="email"]');
   const passEl  = modal.querySelector('input[type="password"]');
   const email = emailEl?.value.trim();
-  if(!email) { showToast('Please enter your email!', 'error'); return; }
-  if(!passEl?.value) { showToast('Please enter a password!', 'error'); return; }
-  // Store email locally (no real auth — just a local profile)
-  localStorage.setItem('rfree_email', email);
-  localStorage.setItem('rfree_logged_in', '1');
-  // Pre-fill account settings
-  const dispEl = document.getElementById('displayName');
-  const userEmailEl = document.getElementById('userEmail');
-  if(dispEl && !dispEl.value) dispEl.value = email.split('@')[0];
-  if(userEmailEl) userEmailEl.value = email;
-  closeModal('loginModal');
-  showToast('🎉 Welcome to RFree Academy! Your profile is saved locally.', 'success');
+  const password = passEl?.value;
+  if (!email) { showToast('Please enter your email!', 'error'); return; }
+  if (!password || password.length < 6) { showToast('Password must be at least 6 characters!', 'error'); return; }
+  try {
+    saveApiBasePreference();
+
+    const res = await fetch(apiUrl('/api/register'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      showToast('❌ ' + (data.error || 'Registration failed. Please try again.'), 'error');
+      return;
+    }
+    localStorage.setItem('rfree_token', data.token);
+    localStorage.setItem('rfree_role', data.role || 'user');
+    localStorage.setItem('rfree_userId', data.userId);
+    localStorage.setItem('rfree_email', email);
+    localStorage.setItem('rfree_logged_in', '1');
+    closeModal('loginModal');
+    showToast('🎉 Welcome to RFree Academy! Account created.', 'success');
+    const lb = document.getElementById('logoutBtn');
+    if(lb) lb.style.display = 'inline-flex';
+  } catch (e) {
+    showToast('❌ Could not connect to server.', 'error');
+  }
 }
 
-function signIn() {
-  const modal = document.getElementById('loginModal');
-  const emailEl = modal.querySelector('input[type="email"]');
-  const email = emailEl?.value.trim();
-  if(!email) { showToast('Please enter your email!', 'error'); return; }
-  localStorage.setItem('rfree_email', email);
-  localStorage.setItem('rfree_logged_in', '1');
-  closeModal('loginModal');
-  showToast('👋 Welcome back!', 'success');
+// ─────────────────────────── LOGOUT ───────────────────────────
+function logout() {
+  ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email'].forEach(k => localStorage.removeItem(k));
+  document.body.classList.remove('is-staff');
+  const adminBtn = document.getElementById('adminPanelBtn');
+  if(adminBtn) adminBtn.remove();
+  const lb = document.getElementById('logoutBtn');
+  if(lb) lb.style.display = 'none';
+  showToast('👋 Logged out. See you soon!', 'success');
 }
 
 // ─────────────────────────── PWA INSTALL ───────────────────────────
@@ -4967,7 +5256,98 @@ if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)
     <button class="btn btn-primary w-full" onclick="submitOrgApplication()">Submit Organization</button>
   </div>
 </div>
+<script>
+async function loadLessons() {
+  const res = await fetch('lessons.json');
+  const data = await res.json();
 
+  const grid = document.querySelector('.library-grid');
+  grid.innerHTML = '';
+
+  data.lessons.forEach(lesson => {
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+
+    card.innerHTML = `
+      <div class="lesson-thumb">
+        ▶
+      </div>
+      <div class="lesson-body">
+        <div class="lesson-subject">${lesson.subject}</div>
+        <div class="lesson-title">${lesson.title}</div>
+        <div class="lesson-meta">${lesson.duration}</div>
+      </div>
+    `;
+
+    // CLICK → OPEN VIDEO
+    card.onclick = () => openRemoteLesson(lesson);
+
+    grid.appendChild(card);
+  });
+}
+let currentLesson = null;
+let watchStartTime = 0;
+
+function openRemoteLesson(lesson) {
+  currentLesson = lesson;
+  watchStartTime = Date.now();
+
+  // Show video in lesson modal if .video-frame doesn't exist
+  const viewer = document.querySelector('.video-frame');
+  if (viewer) {
+    viewer.innerHTML = `<iframe id="lessonFrame" width="100%" height="100%" src="${lesson.video}" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    // Fallback: show in the lessonModal
+    const el = document.getElementById('lessonModalContent');
+    if (el) {
+      el.innerHTML = `
+        <h2 style="font-family:'Arial Black',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:0.75rem">${lesson.title || 'Lesson'}</h2>
+        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:10px;overflow:hidden;background:#000">
+          <iframe id="lessonFrame" style="position:absolute;top:0;left:0;width:100%;height:100%" src="${lesson.video}" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div style="margin-top:1rem;font-size:0.85rem;color:var(--purple-300)">${lesson.subject || ''} · ${lesson.duration || ''}</div>
+        <button class="btn btn-primary w-full" style="margin-top:1rem" onclick="completeLesson()">✅ Mark Complete</button>
+      `;
+      showModal('lessonModal');
+    }
+  }
+}
+
+async function completeLesson() {
+  if (!currentLesson) {
+    alert("Open a lesson first");
+    return;
+  }
+
+  const watchedSeconds = (Date.now() - watchStartTime) / 1000;
+  const required = 60;
+
+  if (watchedSeconds < required) {
+    alert("⚠️ You must actually watch the lesson");
+    return;
+  }
+
+  await fetch(apiUrl("/api/progress/save"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("rfree_token")
+    },
+    body: JSON.stringify({
+      lessonId: currentLesson.id,
+      courseId: currentLesson.courseId || currentLesson.course_id || null,
+      completed: true,
+      watchTime: watchedSeconds
+    })
+  });
+
+  alert("✅ Lesson completed!");
+}
+
+ 
+// load on start
+loadLessons();
+
+</script>
 </body>
 </html>
-
