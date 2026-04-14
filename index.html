@@ -1341,49 +1341,64 @@ body.is-staff .staff-only { display: inline-flex !important; }
     align-items: center;
     padding: 0 0.5rem;
   }
-  /* Admin button: icon-only on mobile */
+  /* Admin button: show text "Admin" with crown on mobile */
   #adminPanelBtn {
-    font-size: 0 !important;
-    padding: 8px 8px !important;
-    border-radius: 50% !important;
+    font-size: 0.75rem !important;
+    padding: 6px 8px !important;
+    border-radius: 20px !important;
     background: linear-gradient(135deg, var(--gold), #d97706) !important;
-    min-width: 36px;
+    min-width: auto;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
+    gap: 4px;
+    color: #000;
+    font-weight: bold;
   }
   #adminPanelBtn::before {
     content: "👑";
     font-size: 1rem;
   }
-  /* Collapse "Sign In" to icon-only, hide "Join Free" — modal still accessible */
+  #adminPanelBtn::after {
+    content: "Admin";
+    font-size: 0.75rem;
+  }
+  /* Collapse "Sign In" to icon-only when not admin */
   .nav-actions .btn-ghost[onclick*="loginModal"] {
-    font-size: 0 !important;
-    padding: 8px 8px !important;
-    border-radius: 50% !important;
-    min-width: 36px;
+    font-size: 0.75rem !important;
+    padding: 8px 12px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
   }
-  .nav-actions .btn-ghost[onclick*="loginModal"]::before {
-    content: "👤";
-    font-size: 1rem;
-  }
-  /* Hide the separate "Join Free" primary button on mobile */
+  /* Keep "Join Free" visible on mobile for regular users */
   .nav-actions .btn-primary[onclick*="loginModal"] {
+    font-size: 0.75rem !important;
+    padding: 8px 12px !important;
+    border-radius: 20px !important;
+    white-space: nowrap;
+    display: inline-block !important;
+  }
+  /* Hide Sign In and Join Free when admin is logged in */
+  .nav-actions .btn-ghost[onclick*="loginModal"][style*="display:none"],
+  .nav-actions .btn-primary[onclick*="loginModal"][style*="display:none"] {
     display: none !important;
   }
-  /* Install button: icon-only on mobile */
+  /* Install button: hidden when app is installed */
   #installBtn {
     font-size: 0 !important;
     padding: 8px 8px !important;
     border-radius: 50% !important;
     min-width: 36px;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
+    display: none !important;
   }
   #installBtn::before {
     content: "📲";
     font-size: 1rem;
+  }
+  #installBtn.show {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
   }
   /* Logout button: icon-only on mobile */
   #logoutBtn {
@@ -2760,6 +2775,11 @@ function showAdminButton() {
     document.querySelector('.nav-actions').prepend(btn);
   }
   btn.style.display = 'inline-flex';
+    // Hide Sign In and Join Free buttons when admin is logged in
+    let signInBtn = document.getElementById('signInBtn');
+    let joinBtn = document.getElementById('joinBtn');
+    if (signInBtn) signInBtn.style.display = 'none';
+    if (joinBtn) joinBtn.style.display = 'none';
 }
 
 // ─── ROLE-BASED NAV SETUP ───
@@ -5294,6 +5314,11 @@ function logout() {
   document.body.classList.remove('is-staff');
   const adminBtn = document.getElementById('adminPanelBtn');
   if(adminBtn) adminBtn.remove();
+  // Show Sign In and Join Free buttons again
+  const signInBtn = document.getElementById('signInBtn');
+  const joinBtn = document.getElementById('joinBtn');
+  if(signInBtn) signInBtn.style.display = 'inline-block';
+  if(joinBtn) joinBtn.style.display = 'inline-block';
   const lb = document.getElementById('logoutBtn');
   if(lb) lb.style.display = 'none';
   showToast('👋 Logged out. See you soon!', 'success');
