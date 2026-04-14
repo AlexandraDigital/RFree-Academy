@@ -1356,12 +1356,8 @@ body.is-staff .staff-only { display: inline-flex !important; }
     font-weight: bold;
   }
   #adminPanelBtn::before {
-    content: "👑";
+    content: "👑 ";
     font-size: 1rem;
-  }
-  #adminPanelBtn::after {
-    content: "Admin";
-    font-size: 0.75rem;
   }
   /* Collapse "Sign In" to icon-only when not admin */
   .nav-actions .btn-ghost[onclick*="loginModal"] {
@@ -2815,7 +2811,7 @@ function showAdminButton() {
     btn.id = 'adminPanelBtn';
     btn.href = 'admin-dashboard.html';
     btn.className = 'btn btn-gold btn-sm';
-    btn.textContent = '👑 Admin';
+    btn.textContent = 'Admin';
     btn.style.textDecoration = 'none';
     document.querySelector('.nav-actions').prepend(btn);
   }
