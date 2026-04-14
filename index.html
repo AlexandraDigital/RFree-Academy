@@ -1408,10 +1408,6 @@ body.is-staff .staff-only { display: inline-flex !important; }
     border-radius: 50% !important;
     min-width: 36px;
     align-items: center;
-  }
-  /* Keep logout hidden when admin is logged in */
-  #logoutBtn[style*="display:none"] {
-    display: none !important;
     justify-content: center;
   }
   #logoutBtn::before {
@@ -2826,7 +2822,7 @@ function showAdminButton() {
     let logoutBtn = document.getElementById('logoutBtn');
     if (signInBtn) signInBtn.style.display = 'none';
     if (joinBtn) joinBtn.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.setProperty('display', 'inline-flex', 'important');
 }
 
 // ─── ROLE-BASED NAV SETUP ───
