@@ -1371,12 +1371,21 @@ body.is-staff .staff-only { display: inline-flex !important; }
     display: inline-block !important;
   }
   /* Keep "Join Free" visible on mobile for regular users */
-  .nav-actions .btn-primary[onclick*="loginModal"] {
+  #joinBtn {
     font-size: 0.75rem !important;
-    padding: 8px 12px !important;
+    padding: 6px 10px !important;
     border-radius: 20px !important;
     white-space: nowrap;
-    display: inline-block !important;
+    display: inline-flex !important;
+    flex-shrink: 0;
+  }
+  #signInBtn {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+    border-radius: 20px !important;
+    white-space: nowrap;
+    display: inline-flex !important;
+    flex-shrink: 0;
   }
   /* Hide Sign In and Join Free when admin is logged in */
   .nav-actions .btn-ghost[onclick*="loginModal"][style*="display:none"],
