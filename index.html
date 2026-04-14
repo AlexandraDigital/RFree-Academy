@@ -1394,11 +1394,12 @@ body.is-staff .staff-only { display: inline-flex !important; }
   }
   /* Install button: hidden when app is installed */
   #installBtn {
-    font-size: 0 !important;
-    padding: 8px 8px !important;
-    border-radius: 50% !important;
-    min-width: 36px;
-    display: none !important;
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
   #installBtn::before {
     content: "📲";
@@ -1497,7 +1498,7 @@ body.is-staff .staff-only { display: inline-flex !important; }
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲 Install</button>
     <button class="btn btn-ghost" id="signInBtn" onclick="openSignIn()">Sign In</button>
     <button class="btn btn-primary" id="joinBtn" onclick="openJoinFree()">Join Free</button>
-    <button class="btn btn-ghost btn-sm" id="logoutBtn" style="display: none;" onclick="logout()" style="display:none">🚪 Log Out</button>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="logout()" style="display: none !important;">🚪 Log Out</button>
   </div>
 </nav>
 <!-- TOAST CONTAINER -->
