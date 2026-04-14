@@ -1334,15 +1334,34 @@ body.is-staff .staff-only { display: inline-flex !important; }
   }
   
   .nav-actions {
-    flex-shrink: 0 !important;
-    gap: 4px !important;
-    margin-left: 0 !important;
+    flex-shrink: 1 !important;
+    gap: 6px !important;
+    margin-left: auto !important;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+  }
+  /* Admin button: icon-only on mobile */
+  #adminPanelBtn {
+    font-size: 0 !important;
+    padding: 8px 8px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, var(--gold), #d97706) !important;
+    min-width: 36px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  #adminPanelBtn::before {
+    content: "👑";
+    font-size: 1rem;
   }
   /* Collapse "Sign In" to icon-only, hide "Join Free" — modal still accessible */
   .nav-actions .btn-ghost[onclick*="loginModal"] {
     font-size: 0 !important;
-    padding: 7px 10px !important;
+    padding: 8px 8px !important;
     border-radius: 50% !important;
+    min-width: 36px;
   }
   .nav-actions .btn-ghost[onclick*="loginModal"]::before {
     content: "👤";
@@ -1355,11 +1374,29 @@ body.is-staff .staff-only { display: inline-flex !important; }
   /* Install button: icon-only on mobile */
   #installBtn {
     font-size: 0 !important;
-    padding: 7px 9px !important;
+    padding: 8px 8px !important;
     border-radius: 50% !important;
+    min-width: 36px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
   }
   #installBtn::before {
     content: "📲";
+    font-size: 1rem;
+  }
+  /* Logout button: icon-only on mobile */
+  #logoutBtn {
+    font-size: 0 !important;
+    padding: 8px 8px !important;
+    border-radius: 50% !important;
+    min-width: 36px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  #logoutBtn::before {
+    content: "🚪";
     font-size: 1rem;
   }
   
@@ -3675,6 +3712,13 @@ async function toggleWebcam(on) {
 async function toggleScreen(on) {
   if(on) {
     try {
+      // Check if getDisplayMedia is supported (not available on mobile)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        showToast('📱 Screen share is not available on mobile browsers. Use a desktop or laptop.', 'error');
+        document.getElementById('srcScreen').checked = false;
+        return;
+      }
+      
       screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
       screenVideo = document.createElement('video');
       screenVideo.srcObject = screenStream;
@@ -3695,7 +3739,13 @@ async function toggleScreen(on) {
     } catch(e) {
       studio.screenActive = false;
       document.getElementById('srcScreen').checked = false;
-      if(e.name !== 'NotAllowedError') showToast('❌ Screen share error: ' + e.message, 'error');
+      if(e.name === 'NotAllowedError') {
+        showToast('User denied screen share permission', 'error');
+      } else if(e.name === 'NotSupportedError') {
+        showToast('📱 Screen share is not supported on this device', 'error');
+      } else {
+        showToast('❌ Screen share error: ' + e.message, 'error');
+      }
     }
   } else {
     if(screenStream) screenStream.getTracks().forEach(t => t.stop());
