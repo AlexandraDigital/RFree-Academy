@@ -1301,7 +1301,38 @@ body.is-staff .staff-only { display: inline-flex !important; }
     background: rgba(26,10,46,0.95) !important;
   }
   .logo svg { width: 150px !important; height: 56px !important; }
-  .nav-tabs { margin-left: 0 !important; padding-right: 0.5rem; }
+  /* Show hamburger menu on mobile */
+  #hamburgerBtn { display: flex !important; align-items: center; justify-content: center; width: 36px; height: 36px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+  
+  /* Hide tabs by default on mobile, show as dropdown */
+  .nav-tabs {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(26,10,46,0.98);
+    flex-direction: column !important;
+    gap: 0 !important;
+    border-top: 1px solid rgba(168,85,247,0.2);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    z-index: 999;
+  }
+  
+  /* Show menu when active */
+  .nav-tabs.active {
+    max-height: 600px;
+  }
+  
+  .nav-tab {
+    width: 100%;
+    text-align: left;
+    padding: 12px 1rem !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba(168,85,247,0.1);
+  }
+  
   .nav-actions {
     flex-shrink: 0 !important;
     gap: 4px !important;
@@ -1333,6 +1364,34 @@ body.is-staff .staff-only { display: inline-flex !important; }
   }
   
 }
+
+/* Desktop nav: show tabs and hide hamburger */
+@media (min-width: 641px) {
+  #hamburgerBtn { display: none !important; }
+  
+  .nav-tabs {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    background: none !important;
+    flex-direction: row !important;
+    gap: 4px !important;
+    border-top: none !important;
+    max-height: none !important;
+    margin-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .nav-tab {
+    width: auto !important;
+    text-align: center !important;
+    padding: 6px 16px !important;
+    border-radius: 100px !important;
+    border-bottom: none !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1354,8 +1413,11 @@ body.is-staff .staff-only { display: inline-flex !important; }
   </svg>
 </div>
 
+  <!-- Hamburger Menu Button (Mobile) -->
+  <button id="hamburgerBtn" class="hamburger-btn" onclick="toggleNavMenu()" style="display:none;margin-right:auto">☰</button>
+
   <!-- Nav Tabs -->
-  <div class="nav-tabs">
+  <div class="nav-tabs" id="navTabsMenu">
     <button class="nav-tab active" onclick="showPage('home')">🏠 Home</button>
     <button class="nav-tab" onclick="showPage('tracks')">🌱 Impact Tracks</button>
     <button class="nav-tab staff-only" onclick="showPage('library')">📚 Library</button>
@@ -2770,7 +2832,26 @@ function showPage(id) {
   }
   if(id === 'certificates') updateCertPreview();
   window.scrollTo(0, 0);
+  // Close mobile menu when page changes
+  const navMenu = document.getElementById('navTabsMenu');
+  if(navMenu) navMenu.classList.remove('active');
 }
+
+// Toggle mobile nav menu
+function toggleNavMenu() {
+  const navMenu = document.getElementById('navTabsMenu');
+  if(navMenu) navMenu.classList.toggle('active');
+}
+
+// Close menu when nav tab is clicked
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const navMenu = document.getElementById('navTabsMenu');
+      if(navMenu) navMenu.classList.remove('active');
+    });
+  });
+});
 
 // ─────────────────────────── MODALS ───────────────────────────
 function showModal(id) { document.getElementById(id).classList.add('open'); }
