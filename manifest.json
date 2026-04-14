@@ -1,0 +1,54 @@
+{
+  "name": "RFree Academy",
+  "short_name": "RFree",
+  "description": "Learn AI and Real-Life Wisdom — Free, Open, and Empowering",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1a0a2e",
+  "background_color": "#1a0a2e",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Explore Tracks",
+      "short_name": "Tracks",
+      "description": "Explore learning tracks",
+      "url": "/?tab=tracks",
+      "icons": [
+        {
+          "src": "icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI Generator",
+      "short_name": "Generator",
+      "description": "Use the AI Generator",
+      "url": "/?tab=generator",
+      "icons": [
+        {
+          "src": "icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
