@@ -2826,9 +2826,8 @@ function showAdminButton() {
 }
 
 // ─── ROLE-BASED NAV SETUP ───
-// Applies on every page load. Staff (teacher/admin) see all tabs;
-// students and guests see only the public-facing tabs.
-(function applyRoleNav() {
+// Will be called inside DOMContentLoaded to ensure DOM is ready
+function applyRoleNav() {
   const loggedIn = localStorage.getItem('rfree_logged_in') === '1';
   const role = localStorage.getItem('rfree_role');
   const isStaffUser = loggedIn && (role === 'admin' || role === 'teacher');
@@ -2846,7 +2845,7 @@ function showAdminButton() {
   if (loggedIn && role === 'admin') {
     showAdminButton();
   }
-})();
+}
 const state = {
   lessons: JSON.parse(localStorage.getItem('rfree_lessons') || '[]'),
   lessonDone: JSON.parse(localStorage.getItem('rfree_lesson_done') || '{}'),
@@ -2947,6 +2946,9 @@ function toggleNavMenu() {
 
 // Close menu when nav tab is clicked
 document.addEventListener('DOMContentLoaded', function() {
+  // Apply role-based navigation after DOM is fully loaded
+  applyRoleNav();
+  
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', function() {
       const navMenu = document.getElementById('navTabsMenu');
