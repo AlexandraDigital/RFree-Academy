@@ -1371,6 +1371,15 @@ body.is-staff .staff-only { display: inline-flex !important; }
     display: inline-block !important;
   }
   /* Keep "Join Free" visible on mobile for regular users */
+  /* Mobile: Install button icon-only */
+  #installBtn {
+    font-size: 0 !important;
+    padding: 8px !important;
+  }
+  #installBtn::before {
+    content: '📲' !important;
+    font-size: 1.1rem !important;
+  }
   #joinBtn {
     font-size: 0.65rem !important;
     padding: 5px 8px !important;
