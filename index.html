@@ -1335,11 +1335,11 @@ body.is-staff .staff-only { display: inline-flex !important; }
   
   .nav-actions {
     flex-shrink: 1 !important;
-    gap: 6px !important;
+    gap: 4px !important;
     margin-left: auto !important;
     display: flex;
     align-items: center;
-    padding: 0 0.5rem;
+    padding: 0 0.25rem;
   }
   /* Admin button: show text "Admin" with crown on mobile */
   #adminPanelBtn {
@@ -1389,8 +1389,8 @@ body.is-staff .staff-only { display: inline-flex !important; }
     flex-shrink: 0;
   }
   /* Hide Sign In and Join Free when admin is logged in */
-  .nav-actions .btn-ghost[onclick*="loginModal"][style*="display:none"],
-  .nav-actions .btn-primary[onclick*="loginModal"][style*="display:none"] {
+  #signInBtn[style*="display:none"],
+  #joinBtn[style*="display:none"] {
     display: none !important;
   }
   /* Install button: hidden when app is installed */
@@ -1408,6 +1408,10 @@ body.is-staff .staff-only { display: inline-flex !important; }
     border-radius: 50% !important;
     min-width: 36px;
     align-items: center;
+  }
+  /* Keep logout hidden when admin is logged in */
+  #logoutBtn[style*="display:none"] {
+    display: none !important;
     justify-content: center;
   }
   #logoutBtn::before {
@@ -2822,7 +2826,7 @@ function showAdminButton() {
     let logoutBtn = document.getElementById('logoutBtn');
     if (signInBtn) signInBtn.style.display = 'none';
     if (joinBtn) joinBtn.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.setProperty('display', 'inline-flex', 'important');
+    if (logoutBtn) logoutBtn.style.display = 'none';
 }
 
 // ─── ROLE-BASED NAV SETUP ───
