@@ -1407,7 +1407,6 @@ body.is-staff .staff-only { display: inline-flex !important; }
     padding: 8px 8px !important;
     border-radius: 50% !important;
     min-width: 36px;
-    display: inline-flex !important;
     align-items: center;
     justify-content: center;
   }
@@ -2819,8 +2818,10 @@ function showAdminButton() {
     // Hide Sign In and Join Free buttons when admin is logged in
     let signInBtn = document.getElementById('signInBtn');
     let joinBtn = document.getElementById('joinBtn');
+    let logoutBtn = document.getElementById('logoutBtn');
     if (signInBtn) signInBtn.style.display = 'none';
     if (joinBtn) joinBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex !important';
 }
 
 // ─── ROLE-BASED NAV SETUP ───
@@ -5361,7 +5362,7 @@ function logout() {
   if(signInBtn) signInBtn.style.display = 'inline-block';
   if(joinBtn) joinBtn.style.display = 'inline-block';
   const lb = document.getElementById('logoutBtn');
-  if(lb) lb.style.display = 'none';
+  if(lb) lb.style.cssText = 'display: none !important;';
   showToast('👋 Logged out. See you soon!', 'success');
 }
 
