@@ -2835,11 +2835,11 @@ function showAdminButton() {
   // Activate body class so CSS shows .staff-only tabs
   if (isStaffUser) document.body.classList.add('is-staff');
 
-  // Admin badge
-  if (loggedIn && role === 'admin') showAdminButton();
-
-  // Logout button
-  if (loggedIn) {
+  // Admin badge - handles hiding Sign In/Join Free and showing logout
+  if (loggedIn && role === 'admin') {
+    showAdminButton();
+  } else if (loggedIn) {
+    // For non-admin logged-in users, show logout button
     const lb = document.getElementById('logoutBtn');
     if (lb) lb.style.display = 'inline-flex';
   }
