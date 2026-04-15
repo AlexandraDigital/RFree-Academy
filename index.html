@@ -1343,22 +1343,22 @@ body.is-staff .staff-only { display: inline-flex !important; }
   }
   /* Admin button: show text "Admin" with crown on mobile */
   #adminPanelBtn {
-    font-size: 0.75rem !important;
-    padding: 6px 8px !important;
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
     border-radius: 20px !important;
     background: linear-gradient(135deg, var(--gold), #d97706) !important;
     min-width: auto;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     color: #000;
     font-weight: bold;
-    margin-right: 8px;
+    margin-right: 6px;
   }
   #adminPanelBtn::before {
-    content: "👑 ";
-    font-size: 1rem;
+    content: "👑";
+    font-size: 1.1rem;
   }
   /* Collapse "Sign In" to icon-only when not admin */
   .nav-actions .btn-ghost[onclick*="loginModal"] {
@@ -1405,15 +1405,17 @@ body.is-staff .staff-only { display: inline-flex !important; }
   /* Logout button: icon-only on mobile */
   #logoutBtn {
     font-size: 0 !important;
-    padding: 8px 8px !important;
+    padding: 10px 10px !important;
     border-radius: 50% !important;
-    min-width: 36px;
+    min-width: 40px;
+    min-height: 40px;
     align-items: center;
     justify-content: center;
+    display: flex !important;
   }
   #logoutBtn::before {
     content: "🚪";
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
   
 }
