@@ -1634,6 +1634,9 @@ body.is-staff .staff-only { display: inline-flex !important; }
   <div class="nav-actions">
     <button class="btn btn-ghost btn-sm" id="installBtn" onclick="promptInstall()" style="display:flex;gap:0.5rem">📲</button>
     
+    <!-- STANDALONE LOGOUT BUTTON (Shows when logged in) -->
+    <button class="btn btn-danger btn-sm" id="standaloneLogoutBtn" onclick="logout()" style="display:none">🚪 Log Out</button>
+    
     <!-- USER MENU DROPDOWN -->
     <div class="user-menu-wrapper">
       <button class="btn btn-ghost" id="userMenuBtn" onclick="toggleUserMenu()" style="font-size:1.3rem">👤</button>
@@ -5414,8 +5417,13 @@ async function signIn() {
     closeModal('loginModal');
 
     // NAV ELEMENTS
+    localStorage.setItem('userLoggedIn', 'true');
+    if (data.role === 'admin') {
+      localStorage.setItem('isStaff', 'true');
+    }
     updateNav(data.role);
     updateAdminButton();  // Update admin button visibility
+    updateUserMenuItems();  // Update dropdown menu items & logout button
 
     // ADMIN
     if (data.role === 'admin') {
@@ -5469,11 +5477,16 @@ async function createAccount() {
     localStorage.setItem('rfree_userId', data.userId);
     localStorage.setItem('rfree_email', email);
     localStorage.setItem('rfree_logged_in', '1');
+    localStorage.setItem('userLoggedIn', 'true');
+    if ((data.role || 'user') === 'admin') {
+      localStorage.setItem('isStaff', 'true');
+    }
 
     closeModal('loginModal');
 
     updateNav(data.role);
     updateAdminButton();  // Update admin button visibility
+    updateUserMenuItems();  // Update dropdown menu items & logout button
 
     showToast('🎉 Welcome to RFree Academy!', 'success');
 
@@ -5509,11 +5522,13 @@ function updateUserMenuItems() {
   const menuJoin = document.getElementById('menu-join');
   const menuLogout = document.getElementById('menu-logout');
   const menuAdmin = document.getElementById('menu-admin');
+  const standaloneLogoutBtn = document.getElementById('standaloneLogoutBtn');
   
   if (menuSignIn) menuSignIn.style.display = isLoggedIn ? 'none' : 'flex';
   if (menuJoin) menuJoin.style.display = isLoggedIn ? 'none' : 'flex';
   if (menuLogout) menuLogout.style.display = isLoggedIn ? 'flex' : 'none';
   if (menuAdmin) menuAdmin.style.display = (isLoggedIn && isAdmin) ? 'flex' : 'none';
+  if (standaloneLogoutBtn) standaloneLogoutBtn.style.display = isLoggedIn ? 'inline-flex' : 'none';
 }
 
 function updateAdminButton() {
@@ -5543,7 +5558,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ─────────────────────────── LOGOUT ───────────────────────────
 function logout() {
-  ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email']
+  ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email','userLoggedIn','isStaff']
     .forEach(k => localStorage.removeItem(k));
 
   document.body.classList.remove('is-staff');
@@ -5552,14 +5567,20 @@ function logout() {
   const joinBtn = document.getElementById('joinBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const adminBtn = document.getElementById('adminPanelBtn');
+  const standaloneLogoutBtn = document.getElementById('standaloneLogoutBtn');
 
   // RESET NAV CLEANLY
   if (signInBtn) signInBtn.style.display = "inline-block";
   if (joinBtn) joinBtn.style.display = "inline-block";
   if (logoutBtn) logoutBtn.style.display = "none";
+  if (standaloneLogoutBtn) standaloneLogoutBtn.style.display = "none";
   if (adminBtn) {
     adminBtn.classList.remove('visible');
   }
+  
+  // Update menu items to show sign in/join options
+  updateUserMenuItems();
+  closeUserMenu();
 
   showToast('👋 Logged out. See you soon!', 'success');
 }
