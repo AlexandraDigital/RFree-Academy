@@ -5405,6 +5405,16 @@ function updateAdminButton() {
   }
 }
 
+// 👑 click → open admin dashboard
+function openAdminPanel() {
+  window.location.href = "admin-dashboard.html";
+}
+
+// 🔁 auto-run on page load
+document.addEventListener("DOMContentLoaded", () => {
+  updateAdminButton();
+});
+
 // ─────────────────────────── LOGOUT ───────────────────────────
 function logout() {
   ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email']
