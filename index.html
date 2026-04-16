@@ -1491,6 +1491,7 @@ body.is-staff .staff-only { display: inline-flex !important; }
 .nav-btn-visible {
   display: inline-flex !important;
 }
+
 #adminPanelBtn {
   background: #facc15 !important;
   color: #111 !important;
@@ -1501,18 +1502,24 @@ body.is-staff .staff-only { display: inline-flex !important; }
   padding: 10px 16px !important;
   font-weight: 700 !important;
 
-  display: inline-flex !important;
+  cursor: pointer !important;
+
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 
-  cursor: pointer !important;
+  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.35);
 
-  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.35) !important;
+  -webkit-appearance: none;
+  appearance: none;
 
-  -webkit-appearance: none !important;
-  appearance: none !important;
+  text-decoration: none;
 }
 
+#adminPanelBtn:hover {
+  background: #eab308 !important;
+  transform: translateY(-1px);
+}
 </style>
 </head>
 <body>
@@ -1558,7 +1565,7 @@ body.is-staff .staff-only { display: inline-flex !important; }
     <button class="btn btn-ghost" id="signInBtn" onclick="openSignIn()">Sign In</button>
     <button class="btn btn-primary" id="joinBtn" onclick="openJoinFree()">Join Free</button>
     <button class="btn btn-ghost btn-sm nav-btn-hidden" id="logoutBtn" onclick="logout()">🚪 Log Out</button>
-   <button id="adminPanelBtn" style="display:none;">
+  <button id="adminPanelBtn" onclick="openAdminPanel()" style="display:none;">
   👑 Admin
 </button>
   </div>
@@ -5382,6 +5389,20 @@ async function createAccount() {
     showToast('❌ Could not connect to server.', 'error');
   }
 }
+function updateAdminButton() {
+  const role = localStorage.getItem('rfree_role');
+  const loggedIn = localStorage.getItem('rfree_logged_in') === '1';
+
+  const btn = document.getElementById('adminPanelBtn');
+  if (!btn) return;
+
+  if (loggedIn && role === 'admin') {
+    btn.style.display = "inline-flex";
+  } else {
+    btn.style.display = "none";
+  }
+}
+
 // ─────────────────────────── LOGOUT ───────────────────────────
 function logout() {
   ['rfree_logged_in','rfree_role','rfree_token','rfree_userId','rfree_email']
