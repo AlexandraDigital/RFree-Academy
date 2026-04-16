@@ -2650,8 +2650,19 @@ function logoutUser() {
     localStorage.clear();
     sessionStorage.clear();
     
-    // Redirect to login/home
-    window.location.href = window.location.pathname;
+    // Reset the form
+    document.getElementById('userEmail').value = '';
+    document.getElementById('userName').value = '';
+    document.getElementById('userRole').value = 'student';
+    
+    // Update UI
+    updateUserRole();
+    
+    // Show logout message
+    showToast('Logged out successfully!', 'success');
+    
+    // Reload the page
+    location.reload();
   }
 }
 
