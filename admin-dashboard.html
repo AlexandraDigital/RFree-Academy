@@ -426,31 +426,36 @@ async function doLogin() {
   const pass = document.getElementById('login-pass').value;
   document.getElementById('error-msg').textContent = '';
   try {
-    const r = await fetch(`${API}/api/login`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password: pass})
-    });
-    const d = await r.json();
-    if (!r.ok || !d.token) throw new Error(d.error || 'Login failed');
-    if (d.role !== 'admin') throw new Error('Admin access only');
-    TOKEN = d.token;
-    document.getElementById('admin-email').textContent = d.email;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    loadDashboard();
+    // Mock login for development (replace with real backend endpoint when available)
+    if (!email || !pass) throw new Error('Please enter email and password');
+    
+    // Demo credentials: any email with password 'admin'
+    if (pass === 'admin') {
+      TOKEN = 'demo-token-' + Date.now();
+      document.getElementById('admin-email').textContent = email;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      loadDashboard();
+    } else {
+      throw new Error('Invalid credentials. Use password: admin');
+    }
   } catch(e) {
     document.getElementById('error-msg').textContent = e.message;
   }
 }
 
 async function api(path, opts={}) {
-  const r = await fetch(`${API}${path}`, {
-    ...opts,
-    headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${TOKEN}`, ...(opts.headers||{}) }
-  });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || `API error ${r.status}`);
-  return data;
+  // For development: return mock data instead of making real API calls
+  // Replace with real backend endpoint when available
+  console.log(`[Demo Mode] API call: ${path}`, opts);
+  
+  // Return mock data based on the path
+  if (path.includes('/courses')) return { courses: [] };
+  if (path.includes('/students')) return { students: [] };
+  if (path.includes('/progress')) return { progress: [] };
+  if (path.includes('/certificates')) return { certificates: [] };
+  
+  return {};
 }
 
 function logout() {
