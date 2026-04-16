@@ -61,6 +61,7 @@
   }
   .sidebar-logo { padding: 0 20px 24px; font-weight: 700; font-size: 1.1rem; color: var(--accent); }
   .sidebar-logo span { color: var(--text); }
+  .sidebar-logo img { width: 100%; height: auto; max-width: 150px; }
   .nav-item {
     padding: 11px 20px; cursor: pointer; color: var(--muted); font-size: 0.9rem;
     display: flex; align-items: center; gap: 10px; transition: all .15s;
@@ -233,7 +234,7 @@
 <div id="app">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">RFREE <span>Admin</span></div>
+    <div class="sidebar-logo"><img src="rfree-logo.png" alt="RFREE Admin"/></div>
     <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
       <span class="nav-icon">📊</span> Dashboard
     </div>
@@ -249,9 +250,7 @@
     <div class="nav-item" onclick="showPage('certificates')" id="nav-certificates">
       <span class="nav-icon">🏆</span> Certificates
     </div>
-    <div class="sidebar-footer">
-      <button class="btn btn-ghost btn-full" onclick="logout()">Sign Out</button>
-    </div>
+    <div class="sidebar-footer"></div>
   </nav>
 
   <!-- Main -->
@@ -265,7 +264,13 @@
         </button>
         <h2 id="page-title">Dashboard</h2>
       </div>
-      <span id="admin-email" style="color:var(--muted);font-size:0.85rem"></span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="admin-btn" class="btn btn-primary" style="padding:8px 14px;font-size:0.85rem;border-radius:6px;display:none" onclick="toggleAdminMode()">⚙️ Admin</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="admin-email" style="color:var(--muted);font-size:0.85rem"></span>
+          <button class="btn btn-ghost" style="padding:8px 12px;font-size:0.85rem;border-radius:6px" onclick="logout()">🚪 Sign Out</button>
+        </div>
+      </div>
     </div>
     <div class="content">
 
@@ -459,6 +464,7 @@ async function doLogin() {
     if (d.role !== 'admin') throw new Error('Admin access only');
     TOKEN = d.token;
     document.getElementById('admin-email').textContent = d.email;
+    document.getElementById('admin-btn').style.display = 'inline-block';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
     loadDashboard();
@@ -481,8 +487,20 @@ function logout() {
   TOKEN = ''; API = '';
   allStudents = []; allCourses = [];
   currentCourseEdit = null; currentLessonCourse = null;
+  document.getElementById('admin-btn').style.display = 'none';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
+}
+
+function toggleAdminMode() {
+  const adminBtn = document.getElementById('admin-btn');
+  if (adminBtn.style.display !== 'none') {
+    const isAdminMode = localStorage.getItem('adminMode') === 'true';
+    localStorage.setItem('adminMode', !isAdminMode);
+    adminBtn.textContent = !isAdminMode ? '✓ Admin Mode' : '⚙️ Admin';
+    adminBtn.style.background = !isAdminMode ? 'var(--accent2)' : 'var(--accent)';
+    showPage('dashboard');
+  }
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────────
