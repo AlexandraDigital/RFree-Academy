@@ -2644,6 +2644,45 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+
+// ── ADMIN & LOGOUT CONTROLS ────────────────────────────────────────────────
+function updateUserRole() {
+  const role = document.getElementById('userRole')?.value || localStorage.getItem('userRole') || 'student';
+  localStorage.setItem('userRole', role);
+  
+  const adminControls = document.getElementById('adminControls');
+  if (role === 'admin') {
+    if (adminControls) adminControls.style.display = 'flex';
+  } else {
+    if (adminControls) adminControls.style.display = 'none';
+  }
+}
+
+function openLessonManager() {
+  // Open the lesson manager in admin mode
+  window.location.href = 'lesson-manager/index.html?admin=true';
+}
+
+function logoutUser() {
+  if (confirm('Are you sure you want to logout?')) {
+    // Clear all stored data
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Redirect to login/home
+    window.location.href = window.location.pathname;
+  }
+}
+
+// Initialize admin controls visibility on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const role = localStorage.getItem('userRole') || 'student';
+  const adminControls = document.getElementById('adminControls');
+  if (adminControls) {
+    adminControls.style.display = role === 'admin' ? 'flex' : 'none';
+  }
+});
+
 </script>
 <script>
 const state = {
