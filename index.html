@@ -2006,7 +2006,7 @@ nav {
           <select class="form-select" id="userRole">
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
-            <option value="both">Both</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
         <button class="btn btn-primary" onclick="saveAccount()">Save Profile</button>
@@ -2616,7 +2616,35 @@ nav {
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+// ── ADMIN CONTROLS ────────────────────────────────────────────────
+function updateUserRole() {
+  const role = document.getElementById('userRole')?.value || localStorage.getItem('userRole') || 'student';
+  localStorage.setItem('userRole', role);
+  
+  const adminBtn = document.getElementById('adminBtn');
+  if (role === 'admin') {
+    if (adminBtn) adminBtn.style.display = 'inline-block';
+  } else {
+    if (adminBtn) adminBtn.style.display = 'none';
+  }
+}
+
+function openLessonManager() {
+  // Open the lesson manager in admin mode
+  window.location.href = 'lesson-manager/index.html?admin=true';
+}
+
+// Initialize admin button visibility on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const role = localStorage.getItem('userRole') || 'student';
+  const adminBtn = document.getElementById('adminBtn');
+  if (adminBtn) {
+    adminBtn.style.display = role === 'admin' ? 'inline-block' : 'none';
+  }
+});
+
+</script>
 <script>
 const state = {
   lessons: JSON.parse(localStorage.getItem('rfree_lessons') || '[]'),
