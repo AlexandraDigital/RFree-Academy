@@ -1334,26 +1334,32 @@ body.is-staff .staff-only { display: inline-flex !important; }
   }
   
   .nav-actions {
-    flex-shrink: 1 !important;
+    flex-shrink: 0 !important;
     gap: 4px !important;
     margin-left: auto !important;
     display: flex;
     align-items: center;
     padding: 0 0.25rem;
+    flex-wrap: wrap;
   }
-  /* Admin button: show text "Admin" with crown on mobile */
+  /* Admin button: show prominently on mobile */
   #adminPanelBtn {
-    font-size: 0.75rem !important;
-    padding: 6px 8px !important;
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
     border-radius: 20px !important;
     background: linear-gradient(135deg, var(--gold), #d97706) !important;
     min-width: auto;
-    display: inline-flex !important;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 4px;
     color: #000;
     font-weight: bold;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  #adminPanelBtn.visible {
+    display: inline-flex !important;
   }
   #adminPanelBtn::before {
     content: "👑 ";
@@ -5326,11 +5332,11 @@ async function signIn() {
 
     // NAV ELEMENTS
     updateNav(data.role);
+    updateAdminButton();  // Update admin button visibility
 
     // ADMIN
     if (data.role === 'admin') {
       showToast('👑 Welcome back, Admin!', 'success');
-      showAdminButton();
 
       setTimeout(() => {
         window.location.href = 'admin-dashboard.html';
@@ -5384,6 +5390,7 @@ async function createAccount() {
     closeModal('loginModal');
 
     updateNav(data.role);
+    updateAdminButton();  // Update admin button visibility
 
     showToast('🎉 Welcome to RFree Academy!', 'success');
 
@@ -5399,9 +5406,10 @@ function updateAdminButton() {
   if (!btn) return;
 
   if (loggedIn && role === 'admin') {
-    btn.style.display = "inline-flex";
+    btn.classList.add('visible');
+    btn.style.display = null;  // remove inline style
   } else {
-    btn.style.display = "none";
+    btn.classList.remove('visible');
   }
 }
 
@@ -5431,7 +5439,9 @@ function logout() {
   if (signInBtn) signInBtn.style.display = "inline-block";
   if (joinBtn) joinBtn.style.display = "inline-block";
   if (logoutBtn) logoutBtn.style.display = "none";
-  if (adminBtn) adminBtn.style.display = "none";
+  if (adminBtn) {
+    adminBtn.classList.remove('visible');
+  }
 
   showToast('👋 Logged out. See you soon!', 'success');
 }
