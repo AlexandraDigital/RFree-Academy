@@ -161,27 +161,36 @@
   .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
 
   #error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 10px; min-height: 20px; }
-  
+
   #adminPanelBtn {
   background: #facc15 !important;
   color: #111 !important;
 
   border: none !important;
-  border-radius: 10px !important;
 
-  padding: 10px 16px !important;
+  padding: 10px 18px !important;
+
+  border-radius: 999px !important; /* 👈 makes it fully rounded pill */
+
   font-weight: 700 !important;
 
-  display: inline-flex !important;
+  cursor: pointer;
+
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 
-  cursor: pointer !important;
+  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.35);
 
-  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.35) !important;
+  -webkit-appearance: none;
+  appearance: none;
 
-  -webkit-appearance: none !important;
-  appearance: none !important;
+  transition: all 0.2s ease;
+}
+
+#adminPanelBtn:hover {
+  background: #eab308 !important;
+  transform: translateY(-1px);
 }
 </style>
 </head>
