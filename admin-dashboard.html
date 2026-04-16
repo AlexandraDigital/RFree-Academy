@@ -213,7 +213,7 @@
 <div id="app">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-logo">RFREE <span>Admin</span></div>
+    <div class="sidebar-logo" onclick="goHome()" style="cursor: pointer; transition: opacity .2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">RFREE <span>Admin</span></div>
     <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
       <span class="nav-icon">📊</span> Dashboard
     </div>
@@ -237,7 +237,10 @@
   <!-- Main -->
   <div class="main">
     <div class="topbar">
-      <h2 id="page-title">Dashboard</h2>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="btn btn-ghost" onclick="goHome()" style="padding: 8px 14px; font-size: 0.85rem;">← Home</button>
+        <h2 id="page-title" style="margin: 0;">Dashboard</h2>
+      </div>
       <span id="admin-email" style="color:var(--muted);font-size:0.85rem"></span>
     </div>
     <div class="content">
@@ -456,6 +459,10 @@ function logout() {
   currentCourseEdit = null; currentLessonCourse = null;
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
+}
+
+function goHome() {
+  window.location.href = 'index.html';
 }
 
 // ── NAV ────────────────────────────────────────────────────────────────────────
