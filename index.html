@@ -2003,13 +2003,17 @@ nav {
         </div>
         <div class="form-group">
           <label class="form-label">Role</label>
-          <select class="form-select" id="userRole">
+          <select class="form-select" id="userRole" onchange="updateUserRole()">
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
             <option value="admin">Admin</option>
           </select>
         </div>
-        <button class="btn btn-primary" onclick="saveAccount()">Save Profile</button>
+        <div style="display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="saveAccount()">Save Profile</button>
+          <button id="adminBtn" class="btn" onclick="openLessonManager()" style="display:none; background-color: #FFD700; color: black; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">👑 Admin</button>
+          <button id="logoutBtn" class="btn btn-danger" onclick="logoutUser()" style="background-color: #ff4757; color: white; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">🚪 Logout</button>
+        </div>
       </div>
 
       <!-- Recording -->
@@ -2617,43 +2621,20 @@ nav {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-// ── ADMIN CONTROLS ────────────────────────────────────────────────
-function updateUserRole() {
-  const role = document.getElementById('userRole')?.value || localStorage.getItem('userRole') || 'student';
-  localStorage.setItem('userRole', role);
-  
-  const adminBtn = document.getElementById('adminBtn');
-  if (role === 'admin') {
-    if (adminBtn) adminBtn.style.display = 'inline-block';
-  } else {
-    if (adminBtn) adminBtn.style.display = 'none';
-  }
-}
-
-function openLessonManager() {
-  // Open the lesson manager in admin mode
-  window.location.href = 'lesson-manager/index.html?admin=true';
-}
-
-// Initialize admin button visibility on page load
-document.addEventListener('DOMContentLoaded', function() {
-  const role = localStorage.getItem('userRole') || 'student';
-  const adminBtn = document.getElementById('adminBtn');
-  if (adminBtn) {
-    adminBtn.style.display = role === 'admin' ? 'inline-block' : 'none';
-  }
-});
-
-
 // ── ADMIN & LOGOUT CONTROLS ────────────────────────────────────────────────
 function updateUserRole() {
   const role = document.getElementById('userRole')?.value || localStorage.getItem('userRole') || 'student';
   localStorage.setItem('userRole', role);
   
+  // Update admin button visibility
+  const adminBtn = document.getElementById('adminBtn');
   const adminControls = document.getElementById('adminControls');
+  
   if (role === 'admin') {
+    if (adminBtn) adminBtn.style.display = 'inline-block';
     if (adminControls) adminControls.style.display = 'flex';
   } else {
+    if (adminBtn) adminBtn.style.display = 'none';
     if (adminControls) adminControls.style.display = 'none';
   }
 }
@@ -2677,10 +2658,12 @@ function logoutUser() {
 // Initialize admin controls visibility on page load
 document.addEventListener('DOMContentLoaded', function() {
   const role = localStorage.getItem('userRole') || 'student';
+  const adminBtn = document.getElementById('adminBtn');
   const adminControls = document.getElementById('adminControls');
-  if (adminControls) {
-    adminControls.style.display = role === 'admin' ? 'flex' : 'none';
-  }
+  
+  const isAdmin = role === 'admin' ? 'inline-block' : 'none';
+  if (adminBtn) adminBtn.style.display = isAdmin;
+  if (adminControls) adminControls.style.display = role === 'admin' ? 'flex' : 'none';
 });
 
 </script>
